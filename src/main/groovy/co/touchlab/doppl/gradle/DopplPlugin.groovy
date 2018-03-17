@@ -40,26 +40,26 @@ import org.gradle.api.tasks.bundling.Jar
  */
 class DopplPlugin implements Plugin<Project> {
 
-    public static final String TASK_DOPPL_TEST_TRANSLATE = 'dopplTest'
+    public static final String TASK_DOPPL_TEST_TRANSLATE = 'j2objcTest'
 
-    public static final String TASK_DOPPL_ASSEMBLY = 'dopplAssembly'
-    public static final String TASK_DOPPL_ARCHIVE = 'dopplArchive'
+    public static final String TASK_DOPPL_ASSEMBLY = 'j2objcAssembly'
+    public static final String TASK_DOPPL_ARCHIVE = 'j2objcArchive'
 
-    public static final String TASK_DOPPL_DEPENDENCY_TRANSLATE_MAIN = 'dopplDependencyTranslateMain'
-    public static final String TASK_DOPPL_DEPENDENCY_TRANSLATE_TEST = 'dopplDependencyTranslateTest'
+    public static final String TASK_DOPPL_DEPENDENCY_TRANSLATE_MAIN = 'j2objcDependencyTranslateMain'
+    public static final String TASK_DOPPL_DEPENDENCY_TRANSLATE_TEST = 'j2objcDependencyTranslateTest'
     public static final String TASK_J2OBJC_MAIN_TRANSLATE = 'j2objcMainTranslate'
     public static final String TASK_J2OBJC_TEST_TRANSLATE = 'j2objcTestTranslate'
     public static final String TASK_J2OBJC_CLEAN_RUNTIME = 'j2objcCleanRuntime'
-    public static final String TASK_DOPPL_FRAMEWORK_MAIN = 'dopplFrameworkMain'
-    public static final String TASK_DOPPL_FRAMEWORK_TEST = 'dopplFrameworkTest'
-    public static final String TASK_DOPPL_BUILD = 'dopplBuild'
+    public static final String TASK_DOPPL_FRAMEWORK_MAIN = 'j2objcFrameworkMain'
+    public static final String TASK_DOPPL_FRAMEWORK_TEST = 'j2objcFrameworkTest'
+    public static final String TASK_DOPPL_BUILD = 'j2objcBuild'
 
     public static final String TASK_J2OBJC_CYCLE_FINDER = 'j2objcCycleFinder'
 
-    public static final String DOPPL_DEPENDENCY_RESOLVER = 'dopplDependencyResolver'
+    public static final String DOPPL_DEPENDENCY_RESOLVER = 'j2objcDependencyResolver'
 
     public static final String TASK_J2OBJC_PRE_BUILD = 'j2objcPreBuild'
-    public static final String TASK_DOPPL_CONTEXT_BUILD = 'dopplContextBuild'
+    public static final String TASK_DOPPL_CONTEXT_BUILD = 'j2objcContextBuild'
 
     @Override
     void apply(Project project) {
@@ -75,7 +75,7 @@ class DopplPlugin implements Plugin<Project> {
         project.with {
 
             DopplInfo dopplInfo = DopplInfo.getInstance(project)
-            extensions.create('dopplConfig', DopplConfig, project)
+            extensions.create('j2objcConfig', DopplConfig, project)
 
             extensions.dopplConfig.extensions.create('mainFramework', FrameworkConfig, false)
             extensions.dopplConfig.extensions.create('testFramework', FrameworkConfig, true)
@@ -83,13 +83,25 @@ class DopplPlugin implements Plugin<Project> {
             // These configurations are groups of artifacts and dependencies for the plugin build
             // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
             configurations {
+                j2objc{
+                    transitive = true
+                    description = 'For j2objc special packages'
+                }
                 doppl{
                     transitive = true
                     description = 'For doppl special packages'
                 }
+                j2objcOnly{
+                    transitive = true
+                    description = 'For j2objc special packages, do not include in dependencies'
+                }
                 dopplOnly{
                     transitive = true
                     description = 'For doppl special packages, do not include in dependencies'
+                }
+                testJ2objc{
+                    transitive = true
+                    description = 'For j2objc testing special packages'
                 }
                 testDoppl{
                     transitive = true

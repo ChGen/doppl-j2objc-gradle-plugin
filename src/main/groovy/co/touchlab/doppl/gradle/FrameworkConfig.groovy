@@ -35,10 +35,10 @@ class FrameworkConfig {
         return project.dopplConfig.testFramework
     }
 
-    String homepage = "http://doppl.co/"
+    String homepage = "http://j2objc.org/"
     String license = "{ :type => 'Apache 2.0' }"
     String authors = "{ 'Filler Person' => 'filler@example.com' }"
-    String source = "{ :git => 'https://github.com/doppllib/doppl-gradle.git'}"
+    String source = "{ :git => 'https://github.com/google/j2objc.git'}"
 
     final boolean test
 
@@ -190,7 +190,7 @@ Pod::Spec.new do |s|
 
   s.name             = '${podname}'
     s.version          = '0.1.0'
-    s.summary          = 'Doppl code framework'
+    s.summary          = 'J2objc code framework'
 
     s.description      = <<-DESC
   TODO: Add long description of the pod here.

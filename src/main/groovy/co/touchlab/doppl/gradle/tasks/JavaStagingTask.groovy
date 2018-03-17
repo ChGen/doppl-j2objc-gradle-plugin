@@ -53,7 +53,7 @@ class JavaStagingTask extends DefaultTask {
     @TaskAction
     void stageJavaFiles(IncrementalTaskInputs inputs) {
 
-        logger.info("DopplGradle: staging-inputs.incremental: " + inputs.incremental)
+        logger.info("J2objcGradle: staging-inputs.incremental: " + inputs.incremental)
         if(inputs.incremental)
         {
             File baseDir = (File)sourceFileTree.dir

@@ -26,8 +26,8 @@ class DopplInfo {
     //Stable jar java dirs
     public static final String JAVA_SOURCE = "javasource"
 
-    public static final String DOPPL_BUILD = "dopplBuild"
-    public static final String DOPPL_ASSEMBLY = "dopplAssembly"
+    public static final String J2OBJC_BUILD = "j2objcBuild"
+    public static final String J2OBJC_ASSEMBLY = "j2objcAssembly"
     public static final String DEPENDENCIES = "dependencies"
     public static final String JAR = "jar"
     public static final String SOURCE = "source"
@@ -35,9 +35,9 @@ class DopplInfo {
     public static final String OBJC = "objc"
     public static final String FOLDER_EXPLODED = 'exploded'
     public static final String FOLDER_OUT = 'out'
-    public static final String FOLDER_DOPPL_DEP_EXPLODED = 'doppl'
-    public static final String FOLDER_DOPPL_ONLY_DEP_EXPLODED = 'dopplOnly'
-    public static final String FOLDER_TEST_DOPPL_DEP_EXPLODED = 'testDoppl'
+    public static final String FOLDER_DOPPL_DEP_EXPLODED = 'j2objc'
+    public static final String FOLDER_DOPPL_ONLY_DEP_EXPLODED = 'j2objcOnly'
+    public static final String FOLDER_TEST_DOPPL_DEP_EXPLODED = 'testJ2objc'
 
     public static final String SOURCEPATH_OBJC_MAIN = "src/main/objc"
     public static final String SOURCEPATH_OBJC_TEST = "src/test/objc"
@@ -73,12 +73,12 @@ class DopplInfo {
 
     @VisibleForTesting
     File rootBuildFile() {
-        new File(buildDir, DOPPL_BUILD)
+        new File(buildDir, J2OBJC_BUILD)
     }
 
     File rootAssemblyFile()
     {
-        new File(buildDir, DOPPL_ASSEMBLY)
+        new File(buildDir, J2OBJC_ASSEMBLY)
     }
 
     File dependencyBuildFile()

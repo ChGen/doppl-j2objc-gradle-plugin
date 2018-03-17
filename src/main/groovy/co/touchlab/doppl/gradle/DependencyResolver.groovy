@@ -35,6 +35,9 @@ class DependencyResolver extends DefaultTask{
     public static final String CONFIG_DOPPL = 'doppl'
     public static final String CONFIG_DOPPL_ONLY = 'dopplOnly'
     public static final String CONFIG_TEST_DOPPL = 'testDoppl'
+    public static final String CONFIG_J2OBJC = 'j2objc'
+    public static final String CONFIG_J2OBJC_ONLY = 'j2objcOnly'
+    public static final String CONFIG_TEST_J2OBJC = 'testJ2objc'
 
     List<DopplDependency> translateDopplLibs = new ArrayList<>()
     List<DopplDependency> translateDopplTestLibs = new ArrayList<>()
@@ -57,8 +60,11 @@ class DependencyResolver extends DefaultTask{
         Map<String, DopplDependency> dependencyMap = new HashMap<>()
 
         configForConfig(CONFIG_DOPPL, translateDopplLibs, dopplInfo.dependencyExplodedDopplFile(), dependencyMap)
+        configForConfig(CONFIG_J2OBJC, translateDopplLibs, dopplInfo.dependencyExplodedDopplFile(), dependencyMap)
         configForConfig(CONFIG_DOPPL_ONLY, translateDopplLibs, dopplInfo.dependencyExplodedDopplOnlyFile(), dependencyMap)
+        configForConfig(CONFIG_J2OBJC_ONLY, translateDopplLibs, dopplInfo.dependencyExplodedDopplOnlyFile(), dependencyMap)
         configForConfig(CONFIG_TEST_DOPPL, translateDopplTestLibs, dopplInfo.dependencyExplodedTestDopplFile(), dependencyMap)
+        configForConfig(CONFIG_TEST_J2OBJC, translateDopplTestLibs, dopplInfo.dependencyExplodedTestDopplFile(), dependencyMap)
     }
 
     void configForConfig(String configName,

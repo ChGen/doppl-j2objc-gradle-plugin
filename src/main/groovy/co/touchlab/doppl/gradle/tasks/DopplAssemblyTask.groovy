@@ -42,7 +42,7 @@ class DopplAssemblyTask extends DefaultTask {
     @InputFiles
     FileCollection getInputFiles()
     {
-        FileTree fileTree = new UnionFileTree("DopplAssemblyTask")
+        FileTree fileTree = new UnionFileTree(getClass().getSimpleName())
 
         BuildTypeProvider buildTypeProvider = _buildContext.getBuildTypeProvider()
 

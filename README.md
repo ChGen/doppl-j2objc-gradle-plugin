@@ -139,7 +139,7 @@ Options that can be set in dopplConfig. Except where noted, the example value in
 can be left empty in your config (if you're happy with the default).
 
 ```groovy
-dopplConfig {
+j2objcConfig {
 
     //Adds metadata to generated code that will let you debug in Java instead of Objective-C
     javaDebug false
@@ -214,10 +214,10 @@ dopplConfig {
         //The following values are required by Cocoapods to define a podspec. Assuming you won't be 
         //publishing your generated podspec, changing these values won't accomplish anything, but
         //they are configurable
-        homepage = "http://doppl.co/"
+        homepage = "http://j2objc-contrib.org/"
         license = "{ :type => 'Apache 2.0' }"
         authors = "{ 'Filler Person' => 'filler@example.com' }"
-        source = "{ :git => 'https://github.com/doppllib/doppl-gradle.git'}"
+        source = "{ :git => 'https://github.com/j2objc-contrib/j2objc-gradle.git'}"
     }
     
     testFramework{

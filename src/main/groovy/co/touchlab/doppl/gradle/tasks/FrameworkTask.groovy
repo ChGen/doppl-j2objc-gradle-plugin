@@ -54,7 +54,7 @@ class FrameworkTask extends DefaultTask {
     }
 
     static String podspecName(boolean test) {
-        test ? "testdoppllib" : "doppllib"
+        test ? "testj2objclib" : "j2objclib"
     }
 
     private List<DopplDependency> dependencyList(boolean testBuild) {

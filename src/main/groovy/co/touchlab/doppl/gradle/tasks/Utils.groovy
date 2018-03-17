@@ -191,9 +191,9 @@ class Utils {
 
     static String j2objcDeclaredVersion(Project project)
     {
-        if(project.hasProperty("doppl_j2objc"))
+        if(project.hasProperty("j2objc_runtime"))
         {
-            return project.findProperty("doppl_j2objc").toString()
+            return project.findProperty("j2objc_runtime").toString()
         }
         else
         {

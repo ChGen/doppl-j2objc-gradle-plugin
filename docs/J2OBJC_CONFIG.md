@@ -41,11 +41,11 @@ finished successfully.
 
 ## Managed config
 
-The gradle plugin can download and manage the J2objc runtime used for building the code. Add 'doppl_j2objc' to 
+The gradle plugin can download and manage the J2objc runtime used for building the code. Add 'j2objc_runtime' to 
 the 'gradle.properties' file.
 
 ```
-doppl_j2objc=2.0.6a
+j2objc_runtime=2.0.6a
 ```
 
 When you run J2objc related tasks, if the local J2objc runtime is not installed, the plugin will download the 

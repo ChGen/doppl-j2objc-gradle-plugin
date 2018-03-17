@@ -68,9 +68,9 @@ dependencies {
 
 }
 
-group = 'co.doppl'
+group = 'org.j2objc-contrib'
 //Changed this a whole number to differentiate it from the core stuff. Confusing.
-version = '0.11.2'
+version = '0.12.0'
 
 project.tasks.all {
     if (it.name == 'publishPluginGroovyDocsJar' || it.name == 'publishPluginJavaDocsJar') {
@@ -101,15 +101,15 @@ publishing {
     }
     repositories {
         maven {
-            url dopplMavenDeploy
+            url j2objcMavenDeploy
         }
     }
 }
 
-ext.bintrayGitUrl ='https://github.com/doppllib/doppl-gradle.git'
+ext.bintrayGitUrl ='https://github.com/j2objc-contrib/j2objc-gradle.git'
 ext.artifactId = 'gradle'
 
-apply from: "$dopplSharedScriptHome/bintray.gradle"
+apply from: "$j2objcSharedScriptHome/bintray.gradle"
 
 File _pdir = project.file('testprojects')
 File[] _dirs = _pdir.listFiles()

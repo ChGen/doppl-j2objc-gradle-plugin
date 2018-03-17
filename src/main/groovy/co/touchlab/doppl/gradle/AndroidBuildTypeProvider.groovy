@@ -101,7 +101,7 @@ class AndroidBuildTypeProvider implements BuildTypeProvider{
 
         if(!variantFound)
         {
-            throw new ProjectConfigurationException("Variant ${dopplConfig.targetVariant} not found for project. Please set dopplConfig.targetVariant.", null)
+            throw new ProjectConfigurationException("Variant ${dopplConfig.targetVariant} not found for project. Please set j2objcConfig.targetVariant.", null)
         }
 
         ArrayList<String> generatedSourceDirs = test ? dopplConfig.generatedTestSourceDirs : dopplConfig.generatedSourceDirs

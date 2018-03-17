@@ -32,8 +32,8 @@ class J2objcRuntimeHelper {
     private static File j2objcRuntimeDir() {
         File home = new File(System.getProperty("user.home"))
 
-        File doppl = new File(home, ".doppl")
-        return new File(doppl, "j2objc")
+        File j2objcDir = new File(home, ".j2objc")
+        return new File(j2objcDir, "runtime")
     }
 
     static void cleanRuntimeDir(Project project){

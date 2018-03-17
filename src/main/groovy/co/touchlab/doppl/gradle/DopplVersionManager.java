@@ -29,7 +29,7 @@ import java.io.IOException;
  */
 public class DopplVersionManager {
 
-    public static final String J2OBJC_CONFIG_MESSAGE = "J2objc config not complete. See: https://github.com/doppllib/doppl-gradle/blob/master/docs/J2OBJC_CONFIG.md";
+    public static final String J2OBJC_CONFIG_MESSAGE = "J2objc config not complete. See: "+ Constants.LINK_J20BJC_GRADLE_DOCS;
 
     public static void checkJ2objcConfig(Project project, boolean forceDownload) {
 
@@ -77,10 +77,10 @@ public class DopplVersionManager {
     }
 
     private static void throwJ2objcConfigFailure(String preamble, Throwable cause) {
-        String message = ">>>>>>>>>>>>>>>> Doppl Tool Configuration Error <<<<<<<<<<<<<<<<\n" +
+        String message = ">>>>>>>>>>>>>>>> J2objc Gradle Configuration Error <<<<<<<<<<<<<<<<\n" +
                 preamble + "\n" +
                 "\n" +
-                "See 'Getting Started' at http://doppl.co\n";
+                "See 'Getting Started' at http://j2objc.org\n";
         if(cause == null)
             throw new InvalidUserDataException(message);
         else
