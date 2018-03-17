@@ -1,10 +1,10 @@
-# Doppl-gradle
+# J2objc gradle
 
-Gradle plugin for j2objc/Doppl
+Updated gradle plugin for J2objc
 
-https://github.com/doppllib/doppl-gradle
+https://github.com/j2objcgradle/gradle
 
-Copyright (c) 2017 Touchlab Inc
+Copyright (c) 2016-2018 Touchlab Inc
 
 Forked from j2objc-gradle
 

@@ -68,7 +68,7 @@ dependencies {
 
 }
 
-group = 'org.j2objc-contrib'
+group = 'org.j2objcgradle'
 //Changed this a whole number to differentiate it from the core stuff. Confusing.
 version = '0.12.0'
 
@@ -106,7 +106,7 @@ publishing {
     }
 }
 
-ext.bintrayGitUrl ='https://github.com/j2objc-contrib/j2objc-gradle.git'
+ext.bintrayGitUrl ='https://github.com/j2objcgradle/gradle.git'
 ext.artifactId = 'gradle'
 
 apply from: "$j2objcSharedScriptHome/bintray.gradle"

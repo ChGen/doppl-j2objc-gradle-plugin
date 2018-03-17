@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.j2objc-contrib.gradle'
+    id 'org.j2objcgradle.gradle'
 }
 
 group 'co.touchlab'

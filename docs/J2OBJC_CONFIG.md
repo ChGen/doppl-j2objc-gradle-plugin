@@ -1,7 +1,7 @@
 # J2objc Config
 
 The J2objc runtime needs to be configured correctly for the plugin to function. After J2objc 2.0.5, 
-this Gradle plugin will run a stock J2objc installation. There are two ways to configure the Doppl plugin's J2objc
+this Gradle plugin will run a stock J2objc installation. There are two ways to configure the J2objc Gradle 
 runtime:
 
 + Manual config: Download or build your own instance of J2objc.

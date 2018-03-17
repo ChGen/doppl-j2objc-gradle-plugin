@@ -3,7 +3,7 @@
 //  ios
 //
 //  Created by Kevin Galligan on 12/13/17.
-//  Copyright © 2017 doppl. All rights reserved.
+//  Copyright © 2017 touchlab Inc. All rights reserved.
 //
 
 import UIKit
