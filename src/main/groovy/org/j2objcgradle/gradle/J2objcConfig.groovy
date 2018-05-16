@@ -36,9 +36,16 @@ class J2objcConfig {
     J2objcConfig(Project project) {
         assert project != null
         this.project = project
+        this.podName = project.name
     }
 
     private J2objcConfig(){}
+
+    String podName
+
+    void podName(String podName) {
+        this.podName = podName
+    }
 
     boolean skipTests = false
 
