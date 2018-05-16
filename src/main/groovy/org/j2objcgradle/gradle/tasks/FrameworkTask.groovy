@@ -39,20 +39,21 @@ class FrameworkTask extends DefaultTask {
 
     static File headerFile(Project project, boolean test)
     {
-        String specName = podspecName(test)
+        String specName = podspecName(project, test)
         File podspecFile = new File(project.buildDir, "${specName}.h")
         return podspecFile
     }
 
     static File configFile(Project project, boolean test, String extension)
     {
-        String specName = podspecName(test)
+        String specName = podspecName(project, test)
         File podspecFile = new File(project.projectDir, "${specName}.${extension}")
         return podspecFile
     }
 
-    static String podspecName(boolean test) {
-        test ? "testj2objclib" : "j2objclib"
+    static String podspecName(Project project, boolean test) {
+        def spec = J2objcConfig.from(project)
+        test ? "${spec.podName}Test" : spec.podName
     }
 
     private List<J2objcDependency> dependencyList(boolean testBuild) {
@@ -81,7 +82,7 @@ class FrameworkTask extends DefaultTask {
         if(test && j2objcConfig.skipTests)
             return
 
-        String specName = podspecName(test)
+        String specName = podspecName(project, test)
         File podspecFile = podspecFile(project, test)
 
         List<File> objcFolders = new ArrayList<>()

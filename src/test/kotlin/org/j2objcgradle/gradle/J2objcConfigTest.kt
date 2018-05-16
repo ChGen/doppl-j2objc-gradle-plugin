@@ -127,6 +127,7 @@ class J2objcConfigTest : BasicTestBase() {
     fun testManagePod()
     {
         writeRunCustomConfig(config = """
+    podName "j2objclib"
     mainFramework{
         managePod "ios"
     }
