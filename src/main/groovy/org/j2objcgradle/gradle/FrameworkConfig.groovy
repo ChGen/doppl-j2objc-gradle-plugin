@@ -162,7 +162,7 @@ class FrameworkConfig {
         srcHeaderLines.add("${j2objcPath}/include")
 
         for (File folder : srcHeaderFolders) {
-            srcHeaderLines.add("${folder.absolutePath}")
+            srcHeaderLines.add("${relativeOrNull(project.projectDir, folder, true)}/**/*.h")
         }
 
         for (File folder : javaFolders) {

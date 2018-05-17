@@ -17,6 +17,9 @@ allprojects {
         jcenter()
         mavenLocal()
         maven { url "https://maven.google.com" }
+        maven { url "http://dl.bintray.com/populov/maven" }
+        maven { url 'https://dl.bintray.com/doppllib/j2objc' }
+        maven { url 'https://maven.google.com' }
     }
 }
 
