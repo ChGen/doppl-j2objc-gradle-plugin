@@ -16,27 +16,20 @@
 
 package org.j2objcgradle.gradle.tasks
 
-import org.j2objcgradle.gradle.BuildContext
-import org.j2objcgradle.gradle.J2objcConfig
-import org.j2objcgradle.gradle.J2objcDependency
-import org.j2objcgradle.gradle.J2objcInfo
-import org.j2objcgradle.gradle.J2objcVersionManager
 import groovy.transform.CompileStatic
-import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.UnionFileTree
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
-import org.j2objcgradle.gradle.BuildTypeProvider
+import org.j2objcgradle.gradle.DependencyResolver
+import org.j2objcgradle.gradle.J2objcConfig
+import org.j2objcgradle.gradle.J2objcInfo
+import org.j2objcgradle.gradle.J2objcVersionManager
 
 /**
  * Translation task for Java to Objective-C using j2objc tool.
@@ -46,14 +39,85 @@ class TranslateTask extends BaseChangesTask {
 
     boolean testBuild
 
-    @InputFiles
-    FileCollection getInputFiles()
-    {
-        FileTree fileTree = new UnionFileTree("TranslateTask - ${(testBuild ? "test" : "main")}")
+    @Input
+    def outBaseName
 
-        BuildTypeProvider buildTypeProvider = _buildContext.getBuildTypeProvider()
-        List<FileTree> sets = testBuild ? buildTypeProvider.testSourceSets(project) : buildTypeProvider.sourceSets(project)
-        for (FileTree set : sets) {
+    @InputFile
+    File dependencyMappings
+
+    @OutputFile
+    File getOutputMapping() {
+        project.file("${project.buildDir}/j2objcBuild/${outBaseName}.mapping")
+    }
+
+    List<FileTree> inputSourceSets = []
+
+    def getFileName() {
+        "${outBaseName}SourceOut"
+    }
+
+    String getBaseDir() {
+        "$project.buildDir/j2objcBuild/translated/$outBaseName"
+    }
+
+    @OutputFile
+    File getHeader() {
+        new File(baseDir, "${fileName}.h")
+    }
+
+    @OutputFile
+    File getImplementation() {
+        new File(baseDir, "${fileName}.m")
+    }
+
+    List<DependencyResolver> resolvers = []
+
+    @InputFiles
+    Set<File> getDependencyJavaFoldersAsFiles() {
+        Set<File> fs = []
+        resolvers.each {
+            it.dependencyJavaDirs.each {
+                fs.add(it)
+            }
+        }
+        return fs
+    }
+
+    @InputFiles
+    FileCollection getDependencyJavaFoldersAsFileCollection() {
+        UnionFileCollection union = new UnionFileCollection()
+        resolvers.each {
+            it.dependencyJavaDirs.each {
+                union.add(project.files(it))
+            }
+        }
+        return union
+    }
+
+    def dependencies(DependencyResolver dependencyResolver) {
+        dependsOn(dependencyResolver)
+        resolvers.add(dependencyResolver)
+        inputFiles dependencyResolver.dependencyJavaDirs
+    }
+
+    def outBaseName(String outBaseName) {
+        this.outBaseName = outBaseName
+    }
+
+    def inputFileTrees(Collection<FileTree> sets) {
+        inputSourceSets.addAll(sets)
+    }
+
+    def inputFiles(Collection<File> sets) {
+        sets.each {
+            inputSourceSets.add(project.fileTree(it))
+        }
+    }
+
+    @InputFiles
+    Set<File> getAllJava() {
+        FileTree fileTree = new UnionFileTree()
+        for (FileTree set : inputSourceSets) {
             fileTree.add(set)
         }
 
@@ -66,27 +130,12 @@ class TranslateTask extends BaseChangesTask {
             include "**/*.java"
         })
 
-        return fileTree
+        return fileTree.files
     }
 
     static PatternSet javaPattern(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = PatternSet) Closure cl) {
         PatternSet translatePattern = new PatternSet()
         return ConfigureUtil.configure(cl, translatePattern)
-    }
-
-    File getMappingsFile()
-    {
-        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
-        if(testBuild)
-            return j2objcInfo.sourceBuildOutTestMappings()
-        else
-            return j2objcInfo.sourceBuildOutMainMappings()
-    }
-
-    @Input
-    String getDependencyList()
-    {
-        return PodManagerTask.getDependencyList(_buildContext, testBuild)
     }
 
     @Input boolean isEmitLineDirectives() {
@@ -99,14 +148,6 @@ class TranslateTask extends BaseChangesTask {
         return f.exists() ? f : null
     }
 
-    @OutputDirectory
-    File getBuildOut() {
-        if(testBuild)
-            return J2objcInfo.getInstance(project).sourceBuildOutFileTest()
-        else
-            return J2objcInfo.getInstance(project).sourceBuildOutFileMain()
-    }
-
     @TaskAction
     void translate(IncrementalTaskInputs inputs) {
 
@@ -116,16 +157,12 @@ class TranslateTask extends BaseChangesTask {
 
         J2objcVersionManager.checkJ2objcConfig(project, true)
 
-        /*if(!j2objcConfig.disableAnalytics) {
-            new J2objcAnalytics(j2objcConfig, Utils.findVersionString(project, Utils.j2objcHome(project))).execute()
-        }*/
-
         File objcDir = getObjcDir()
         if(objcDir != null)
         {
             Utils.projectCopy(project, {
                 from objcDir
-                into getBuildOut()
+                into baseDir
                 includeEmptyDirs = false
             })
         }
@@ -135,7 +172,7 @@ class TranslateTask extends BaseChangesTask {
         def prefixMap = getPrefixes()
 
         doTranslate(
-                allJavaFolders(),
+                getAllJavaFolders(),
                 translateArgs,
                 prefixMap,
                 isEmitLineDirectives()
@@ -151,8 +188,17 @@ class TranslateTask extends BaseChangesTask {
         }
     }
 
-    void recursiveGrab(File dir, List<File> files)
-    {
+    @InputFiles
+    Set<File> getAllJavaFolders() {
+        Set<File> allFiles = new HashSet<>()
+        inputSourceSets.each {
+            allFiles.add(((ConfigurableFileTree)it).dir)
+        }
+        return allFiles
+    }
+
+
+    void recursiveGrab(File dir, List<File> files) {
         if(dir.isDirectory())
         {
             File[] dirFiles = dir.listFiles()
@@ -171,7 +217,7 @@ class TranslateTask extends BaseChangesTask {
             Map<String, String> prefixMap,
             boolean emitLineDirectives) {
 
-        Set<File> allTranslateFiles = getInputFiles().files
+        Set<File> allTranslateFiles = getAllJava()
 
         if(allTranslateFiles.size() == 0)
             return
@@ -179,6 +225,7 @@ class TranslateTask extends BaseChangesTask {
         J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
         String j2objcExecutable = "${getJ2objcHome()}/j2objc"
 
+        sourcepathDirs.addAll(dependencyJavaFoldersAsFiles)
         String sourcepathArg = Utils.joinedPathArg(sourcepathDirs)
 
         //Classpath arg for translation. Includes user specified jars, j2objc 'standard' jars, and j2objc dependency libs
@@ -194,7 +241,7 @@ class TranslateTask extends BaseChangesTask {
         List<String> mappingFiles = new ArrayList<>()
         Map<String, String> allPrefixes = new HashMap<>(prefixMap)
 
-        addMappings(j2objcInfo.dependencyOutMainMappings(), mappingFiles)
+        addMappings(dependencyMappings, mappingFiles)
 
         if(testBuild)
         {
@@ -202,22 +249,18 @@ class TranslateTask extends BaseChangesTask {
             addMappings(j2objcInfo.sourceBuildOutMainMappings(), mappingFiles)
         }
 
-        File buildOut = getBuildOut()
-        buildOut.mkdirs()
-        File javaBatch = new File(buildOut, "javabatch.in")
-
-
+        File javaBatch = new File(baseDir, "javabatch.in")
         javaBatch.write(allTranslateFiles.join("\n"))
 
         try {
             Utils.projectExec(project, stdout, stderr, null, {
                 executable j2objcExecutable
 
-                args "-d", Utils.relativePath(project.projectDir, buildOut)
+                args "-d", Utils.relativePath(project.projectDir, project.file(baseDir))
                 args "-XcombineJars", ''
-                args "-XglobalCombinedOutput", "${testBuild ? 'test' : 'main'}SourceOut"
+                args "-XglobalCombinedOutput", fileName
                 args "--swift-friendly", ''
-                args "--output-header-mapping", getMappingsFile().path
+                args "--output-header-mapping", outputMapping.path
 
                 if(emitLineDirectives)
                 {
@@ -263,68 +306,4 @@ class TranslateTask extends BaseChangesTask {
             mappingFiles.add(mapFile.path)
     }
 
-    static List<J2objcDependency> getTranslateJ2objcLibs(BuildContext _buildContext, boolean testBuild) {
-        List<J2objcDependency> libs = new ArrayList<>()
-        libs.addAll(_buildContext.getDependencyResolver().translateJ2objcLibs)
-        if(testBuild)
-        {
-            libs.addAll(_buildContext.getDependencyResolver().translateJ2objcTestLibs)
-        }
-        return libs
-    }
-
-    static Set<File> depJavaFolders(BuildContext _buildContext, boolean testBuild)
-    {
-        List<J2objcDependency> j2objcLibs = getTranslateJ2objcLibs(_buildContext, testBuild)
-
-        return depLibsToJavaFolders(j2objcLibs)
-    }
-
-    static Set<File> depLibsToJavaFolders(List<J2objcDependency> j2objcLibs) {
-        Set<File> javaFolders = new HashSet<>()
-        for (J2objcDependency dependency : j2objcLibs) {
-            File javaFolder = dependency.dependencyJavaFolder()
-            if (javaFolder.exists())
-                javaFolders.add(javaFolder)
-        }
-
-        return javaFolders
-    }
-
-    static Set<File> allJavaFolders(Project project, BuildContext _buildContext, boolean testBuild)
-    {
-        Set<File> allFiles = new HashSet<>()
-        allFiles.addAll(depJavaFolders(_buildContext, testBuild))
-
-        allFiles.addAll(mainSourceDirs(project, _buildContext))
-        if(testBuild){
-            allFiles.addAll(testSourceDirs(project, _buildContext))
-        }
-        return allFiles
-    }
-
-    static Set<File> mainSourceDirs(Project project, BuildContext _buildContext)
-    {
-        Set<File> files = new HashSet<>()
-        fillDirsFromTrees(_buildContext.getBuildTypeProvider().sourceSets(project), files)
-        return files
-    }
-
-    static Set<File> testSourceDirs(Project project, BuildContext _buildContext)
-    {
-        Set<File> files = new HashSet<>()
-        fillDirsFromTrees(_buildContext.getBuildTypeProvider().testSourceSets(project), files)
-        return files
-    }
-
-    private static void fillDirsFromTrees(List<FileTree> mainSourceSets, Set<File> allFiles) {
-        for (FileTree fileTree : mainSourceSets) {
-            allFiles.add(Utils.dirFromFileTree(fileTree))
-        }
-    }
-
-    //All the java source dirs we're going to try to translate
-    Set<File> allJavaFolders() {
-        return allJavaFolders(project, _buildContext, testBuild)
-    }
 }

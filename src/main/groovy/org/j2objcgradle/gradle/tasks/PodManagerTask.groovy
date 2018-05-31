@@ -46,17 +46,6 @@ class PodManagerTask extends DefaultTask{
         task.dependsOn(upstream)
     }
 
-    static String getDependencyList(BuildContext _buildContext, boolean testBuild)
-    {
-        StringBuilder sb = new StringBuilder()
-
-        appendDependencyNames(_buildContext.getDependencyResolver().translateJ2objcLibs, sb)
-        if(testBuild)
-            appendDependencyNames(_buildContext.getDependencyResolver().translateJ2objcTestLibs, sb)
-
-        return sb.toString()
-    }
-
     @Input
     boolean getJavaDebug()
     {
@@ -67,12 +56,6 @@ class PodManagerTask extends DefaultTask{
     boolean getDependencyJavaDebug()
     {
         return J2objcConfig.from(project).dependenciesEmitLineDirectives
-    }
-
-    @Input
-    String getDependencyList()
-    {
-        return getDependencyList(_buildContext, testBuild)
     }
 
     @Input

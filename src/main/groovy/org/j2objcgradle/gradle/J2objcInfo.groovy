@@ -43,7 +43,7 @@ class J2objcInfo {
     public static final String SOURCEPATH_OBJC_TEST = "src/test/objc"
 
     private static J2objcInfo instance;
-    public static final String J2OBJC_MAPPINGS = "j2objc.mappings"
+    public static final String J2OBJC_MAPPINGS = "j2objc.dependencyMappings"
     private final File buildDir
 
     public static final String TEST_CLASSES_LIST_FILENAME = "j2objcTests.txt"
@@ -96,36 +96,6 @@ class J2objcInfo {
      File dependencyExplodedFile()
     {
         return new File(dependencyBuildFile(), FOLDER_EXPLODED)
-    }
-
-    /**
-     * Exploded dir for 'j2objc' dependencies
-     * @param project
-     * @return
-     */
-     File dependencyExplodedJ2objcFile()
-    {
-        return new File(dependencyExplodedFile(), FOLDER_J2OBJC_DEP_EXPLODED)
-    }
-
-    /**
-     * Exploded dir for 'j2objcOnly' dependencies
-     * @param project
-     * @return
-     */
-     File dependencyExplodedJ2objcOnlyFile()
-    {
-        return new File(dependencyExplodedFile(), FOLDER_J2OBJC_ONLY_DEP_EXPLODED)
-    }
-
-    /**
-     * Exploded dir for 'testJ2objc' dependencies
-     * @param project
-     * @return
-     */
-     File dependencyExplodedTestJ2objcFile()
-    {
-        return new File(dependencyExplodedFile(), FOLDER_TEST_J2OBJC_DEP_EXPLODED)
     }
 
     File dependencyOutFile()

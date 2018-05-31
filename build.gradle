@@ -65,6 +65,8 @@ dependencies {
     testCompile "org.mockito:mockito-core:1.9.5"
     testCompile 'junit:junit:4.11'
     testCompile 'commons-io:commons-io:2.4'
+    testCompile group: 'org.jruby', name: 'jrubyparser', version: '0.5.3'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
 
 }
 

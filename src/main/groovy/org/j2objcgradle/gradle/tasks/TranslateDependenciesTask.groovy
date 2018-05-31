@@ -16,69 +16,79 @@
 
 package org.j2objcgradle.gradle.tasks
 
-import org.j2objcgradle.gradle.J2objcConfig
-import org.j2objcgradle.gradle.J2objcDependency
-import org.j2objcgradle.gradle.J2objcInfo
-import org.j2objcgradle.gradle.J2objcVersionManager
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.UnionFileTree
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.j2objcgradle.gradle.DependencyResolver
+import org.j2objcgradle.gradle.J2objcConfig
+import org.j2objcgradle.gradle.J2objcInfo
+import org.j2objcgradle.gradle.J2objcVersionManager
 
-class TranslateDependenciesTask extends BaseChangesTask{
+class TranslateDependenciesTask extends BaseChangesTask {
 
     boolean testBuild
+
+    @Input
+    def outBaseName
+
+    def getFileName() {
+        "${outBaseName}DependenciesOut"
+    }
+
+    String getBaseDir() {
+        "$project.buildDir/j2objcBuild/translated/$outBaseName"
+    }
+
+    @OutputFile
+    File getHeader() {
+        new File(baseDir, "${fileName}.h")
+    }
+
+    @OutputFile
+    File getImplementation() {
+        new File(baseDir, "${fileName}.m")
+    }
+
+    Set<DependencyResolver> resolvers = []
+
+    @InputFiles
+    FileCollection dependencyJavaFoldersAsFileCollection() {
+        UnionFileCollection inputs = new UnionFileCollection()
+        resolvers
+                .collect({it.dependencyJavaDirs})
+                .each { inputs.add(project.files(it)) }
+        inputs
+    }
+
+    @InputFiles
+    Set<File> dependencyJavaFoldersAsFiles() {
+        new HashSet<>(resolvers
+                .collect({it.dependencyJavaDirs})
+                .flatten())
+    }
+
+    void dependencies(DependencyResolver... dependencyResolvers) {
+        dependencyResolvers.each {
+            dependsOn(it)
+            resolvers.add(it)
+        }
+    }
 
     @Input boolean isDependenciesEmitLineDirectives() {
         J2objcConfig.from(project).dependenciesEmitLineDirectives
     }
 
-    @Input
-    String getDependencyVersions()
-    {
-        DependencyResolver resolver = _buildContext.getDependencyResolver()
-        List<J2objcDependency> libs = dependencyList(resolver)
-
-        return flattenLibs(libs)
-    }
-
-    @OutputDirectory
-    File getBuildOut() {
-        if(testBuild)
-            return J2objcInfo.getInstance(project).dependencyOutFileTest()
-        else
-            return J2objcInfo.getInstance(project).dependencyOutFileMain()
-    }
-
-    private List<J2objcDependency> dependencyList(DependencyResolver resolver) {
-        return testBuild ? resolver.translateJ2objcTestLibs : resolver.translateJ2objcLibs
-    }
-
-    //TODO: This assumes the folders are distinct. Need a better solution.
-    private String flattenLibs(List<J2objcDependency> libs)
-    {
-        List<String> parts = new ArrayList<>()
-        for (J2objcDependency dep : libs) {
-            parts.add(dep.dependencyFolderLocation().name)
-        }
-
-        return parts.join("|")
-    }
-
-    File getMappingsFile()
-    {
-        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
-        if(testBuild)
-            return j2objcInfo.dependencyOutTestMappings()
-        else
-            return j2objcInfo.dependencyOutMainMappings()
+    @OutputFile
+    File getOutputMapping() {
+        project.file("${project.buildDir}/j2objcBuild/${outBaseName}Dependency.mapping")
     }
 
     @TaskAction
     void translateDependencies(IncrementalTaskInputs inputs) {
+
+        outputMapping.createNewFile()
 
         J2objcVersionManager.checkJ2objcConfig(project, true)
 
@@ -86,11 +96,6 @@ class TranslateDependenciesTask extends BaseChangesTask{
 
         J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
 
-
-        List<J2objcDependency> dependencies = dependencyList(_buildContext.getDependencyResolver())
-
-        if (dependencies.size() == 0)
-            return
 
         UnionFileCollection classpathFiles = new UnionFileCollection([
                 project.files(Utils.j2objcLibs(getJ2objcHome(), getTranslateJ2objcLibs()))
@@ -100,45 +105,44 @@ class TranslateDependenciesTask extends BaseChangesTask{
 
         List<File> sourcepathList = new ArrayList<>()
 
-        if (testBuild) {
-            ArrayList<J2objcDependency> libs = _buildContext.getDependencyResolver().translateJ2objcLibs
-            for (J2objcDependency dep : libs) {
-                sourcepathList.add(dep.dependencyJavaFolder())
+        if (!dependencyJavaFoldersAsFiles().empty) {
+            dependencyJavaFoldersAsFiles().each {
+                sourcepathList.add(it)
             }
         }
-
         Map<String, String> allPrefixes = getPrefixes()
 
-        runTranslate(j2objcExecutable, j2objcInfo, sourcepathList, classpathArg, allPrefixes, dependencies)
+        runTranslate(j2objcExecutable, j2objcInfo, sourcepathList, classpathArg, allPrefixes)
     }
 
     private void runTranslate(String j2objcExecutable, J2objcInfo j2objcInfo, List<File> sourcepathList, String classpathArg,
-                              allPrefixes, List<J2objcDependency> dependencies) {
+                              allPrefixes) {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream()
         ByteArrayOutputStream stderr = new ByteArrayOutputStream()
 
         UnionFileTree fileTree = new UnionFileTree("All Dependency Java")
 
-        for (J2objcDependency dep : dependencies) {
-            fileTree.add(project.fileTree(dir: dep.dependencyJavaFolder(), includes: ["**/*.java"]))
+        fileTree.add(dependencyJavaFoldersAsFileCollection().asFileTree.matching { include "**/*.java" })
+
+        def files = fileTree.files
+        if (files.size() == 0) {
+            return
         }
 
-        File buildOut = getBuildOut()
-        buildOut.mkdirs()
-        File javaBatch = new File(buildOut, "javabatch.in")
 
-        javaBatch.write(fileTree.files.join("\n"))
+        File javaBatch = new File(baseDir, "javabatch.in")
+        javaBatch.write(files.join("\n"))
 
         try {
             Utils.projectExec(project, stdout, stderr, null, {
                 executable j2objcExecutable
 
                 // Arguments
-                args "-d", Utils.relativePath(project.projectDir, buildOut)
+                args "-d", Utils.relativePath(project.projectDir, project.file(baseDir))
                 args "-XcombineJars", ''
-                args "-XglobalCombinedOutput", "${testBuild ? 'test' : 'main'}DependencyOut"
+                args "-XglobalCombinedOutput", fileName
                 args "--swift-friendly", ''
-                args "--output-header-mapping", getMappingsFile().path
+                args "--output-header-mapping", outputMapping.path
 
                 if (isDependenciesEmitLineDirectives()) {
                     args "-g", ''
@@ -175,11 +179,13 @@ class TranslateDependenciesTask extends BaseChangesTask{
                 setWorkingDir project.projectDir
             })
 
+            javaBatch.delete()
+
         } catch (Exception exception) {  // NOSONAR
             // TODO: match on common failures and provide useful help
             throw exception
         }
 
-//        javaBatch.delete()
+
     }
 }

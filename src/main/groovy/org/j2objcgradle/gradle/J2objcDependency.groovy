@@ -16,22 +16,31 @@
 
 package org.j2objcgradle.gradle
 
+
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
+import org.gradle.api.tasks.Input
+
 
 /**
  * Created by kgalligan on 6/24/16.
  */
 class J2objcDependency {
+
+    @Input
     String name
-    String versionMame
+
+    @Input
+    String versionName
+
+    @Input
     File dir
 
-    File dopFile = null
+    File dopFile
 
     J2objcDependency(String name, File dir) {
         this.name = name
-        this.versionMame = name
+        this.versionName = name
         this.dir = dir
     }
 
@@ -46,7 +55,7 @@ class J2objcDependency {
 
         String foldername = group + "_" + name + "_" + version
 
-        this.versionMame = foldername
+        this.versionName = foldername
 
         foldername = foldername.replace('-', '_')
         foldername = foldername.replace('.', '_')
@@ -63,6 +72,10 @@ class J2objcDependency {
 
     File dependencyJavaFolder(){
         return new File(dependencyFolderLocation(), "java")
+    }
+
+    File dependencyNativeFolder(){
+        return new File(dependencyFolderLocation(), "src")
     }
 
     boolean equals(o) {
@@ -84,26 +97,31 @@ class J2objcDependency {
         return result
     }
 
+    File output() {
+        File folderLocation = dependencyFolderLocation()
+        File unzipFolder = folderLocation
+
+        //Assume this is a sources jar
+
+        // adding java folder to path if this is a standard jar (not doppl)
+        if(dopFile != null && dopFile.name.endsWith(".jar"))
+        {
+            folderLocation.mkdirs()
+            unzipFolder = dependencyJavaFolder()
+        }
+        return unzipFolder
+    }
+
     void expandDop(Project project)
     {
-        File folderLocation = dependencyFolderLocation()
-        if(dopFile != null && !folderLocation.exists())
+        if(dopFile != null)
         {
-            File unzipFolder = folderLocation
-
-            //Assume this is a sources jar
-            if(dopFile.getName().endsWith(".jar"))
-            {
-                folderLocation.mkdirs()
-                unzipFolder = dependencyJavaFolder()
-            }
-
             project.copy { CopySpec cp ->
                 cp.from project.zipTree(dopFile)
-                cp.into unzipFolder
+                cp.into output()
             }
 
-            markReadOnlyRecursive(folderLocation)
+            markReadOnlyRecursive(output())
         }
     }
 
@@ -121,4 +139,6 @@ class J2objcDependency {
             }
         }
     }
+
+
 }

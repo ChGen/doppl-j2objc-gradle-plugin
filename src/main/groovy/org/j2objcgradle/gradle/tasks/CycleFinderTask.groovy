@@ -16,7 +16,10 @@
 
 package org.j2objcgradle.gradle.tasks
 
+import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.tasks.InputFiles
 import org.j2objcgradle.gradle.BuildContext
+import org.j2objcgradle.gradle.DependencyResolver
 import org.j2objcgradle.gradle.J2objcConfig
 import org.j2objcgradle.gradle.J2objcVersionManager
 import org.gradle.api.DefaultTask
@@ -37,6 +40,27 @@ class CycleFinderTask extends DefaultTask {
 
     BuildContext _buildContext
 
+    List<FileTree> inputSourceSets = []
+
+    def inputFileTrees(Collection<FileTree> sets) {
+        inputSourceSets.addAll(sets)
+    }
+
+    def inputFiles(Collection<File> sets) {
+        sets.each {
+            inputSourceSets.add(project.fileTree(it))
+        }
+    }
+
+    @InputFiles
+    Set<File> getAllJavaFolders() {
+        Set<File> allFiles = new HashSet<>()
+        inputSourceSets.each {
+            allFiles.add(((ConfigurableFileTree)it).dir)
+        }
+        return allFiles
+    }
+
     FileCollection getSrcInputFiles() {
         UnionFileTree fileTree = new UnionFileTree("All Source")
         for (FileTree tree : _buildContext.getBuildTypeProvider().sourceSets(project)) {
@@ -49,9 +73,27 @@ class CycleFinderTask extends DefaultTask {
 
     List<String> getCycleFinderArgs() { return J2objcConfig.from(project).cycleFinderArgs }
 
-    List<String> getTranslateJ2objcLibs() { return J2objcConfig.from(project).translateJ2objcLibs }
+    List<String> getTranslateJ2objcLibs() { return J2objcConfig.from(project).toBeTranslated }
 
     File getReportFile() { project.file("${project.buildDir}/reports/${name}.out") }
+
+    List<DependencyResolver> resolvers = []
+
+    def dependencies(DependencyResolver dependencyResolver) {
+        dependsOn(dependencyResolver)
+        resolvers.add(dependencyResolver)
+    }
+
+    @InputFiles
+    Set<File> getDependencyJavaFoldersAsFiles() {
+        Set<File> fs = []
+        resolvers.each {
+            it.dependencyJavaDirs.each {
+                fs.add(it)
+            }
+        }
+        return fs
+    }
 
     @TaskAction
     void cycleFinder() {
@@ -69,9 +111,9 @@ class CycleFinderTask extends DefaultTask {
 
         FileCollection fullSrcFiles = getSrcInputFiles()
 
-        Set<File> allJavaDirs = TranslateTask.allJavaFolders(project, _buildContext, false)
-
-        String sourcepathArg = Utils.joinedPathArg(allJavaDirs)
+        def allJava = allJavaFolders
+        allJava.addAll dependencyJavaFoldersAsFiles
+        String sourcepathArg = Utils.joinedPathArg(allJava)
 
         //Classpath arg for translation. Includes user specified jars, j2objc 'standard' jars, and j2objc dependency libs
         UnionFileCollection classpathFiles = new UnionFileCollection([

@@ -30,15 +30,12 @@ class J2objcInfoTest {
         checkPath(j2objcInfo.rootBuildFile(), "j2objcBuild")
         checkPath(j2objcInfo.dependencyBuildFile(), "j2objcBuild/dependencies")
         checkPath(j2objcInfo.dependencyExplodedFile(), "j2objcBuild/dependencies/exploded")
-        checkPath(j2objcInfo.dependencyExplodedJ2objcFile(), "j2objcBuild/dependencies/exploded/j2objc")
-        checkPath(j2objcInfo.dependencyExplodedJ2objcOnlyFile(), "j2objcBuild/dependencies/exploded/j2objcOnly")
-        checkPath(j2objcInfo.dependencyExplodedTestJ2objcFile(), "j2objcBuild/dependencies/exploded/testJ2objc")
 
         checkPath(j2objcInfo.dependencyOutFile(), "j2objcBuild/dependencies/out")
         checkPath(j2objcInfo.dependencyOutFileMain(), "j2objcBuild/dependencies/out/main")
         checkPath(j2objcInfo.dependencyOutFileTest(), "j2objcBuild/dependencies/out/test")
-        checkPath(j2objcInfo.dependencyOutMainMappings(), "j2objcBuild/dependencies/out/main/j2objc.mappings")
-        checkPath(j2objcInfo.dependencyOutTestMappings(), "j2objcBuild/dependencies/out/test/j2objc.mappings")
+        checkPath(j2objcInfo.dependencyOutMainMappings(), "j2objcBuild/dependencies/out/main/j2objc.dependencyMappings")
+        checkPath(j2objcInfo.dependencyOutTestMappings(), "j2objcBuild/dependencies/out/test/j2objc.dependencyMappings")
 
         checkPath(j2objcInfo.sourceBuildFile(), "j2objcBuild/source")
 
@@ -57,8 +54,8 @@ class J2objcInfoTest {
         checkPath(j2objcInfo.sourceBuildOutFile(), "j2objcBuild/source/out")
         checkPath(j2objcInfo.sourceBuildOutFileMain(), "j2objcBuild/source/out/main")
         checkPath(j2objcInfo.sourceBuildOutFileTest(), "j2objcBuild/source/out/test")
-        checkPath(j2objcInfo.sourceBuildOutMainMappings(), "j2objcBuild/source/out/main/j2objc.mappings")
-        checkPath(j2objcInfo.sourceBuildOutTestMappings(), "j2objcBuild/source/out/test/j2objc.mappings")
+        checkPath(j2objcInfo.sourceBuildOutMainMappings(), "j2objcBuild/source/out/main/j2objc.dependencyMappings")
+        checkPath(j2objcInfo.sourceBuildOutTestMappings(), "j2objcBuild/source/out/test/j2objc.dependencyMappings")
     }
 
     fun checkPath(f: File, path: String)

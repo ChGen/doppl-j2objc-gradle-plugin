@@ -25,7 +25,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.util.PatternSet
 
-class TestTranslateTask extends BaseChangesTask {
+class ListTestsTask extends BaseChangesTask {
     List<FileTree> sourceSets
 
     @OutputFile

@@ -18,72 +18,72 @@ package org.j2objcgradle.gradle
 
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
+import org.gradle.api.DomainObjectCollection
+import org.gradle.api.DomainObjectSet
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 
 /**
  * Resolves j2objc dependencies. Can handle external artifacts as well as project dependencies
  */
 @CompileStatic
-class DependencyResolver extends DefaultTask{
+class DependencyResolver extends DefaultTask {
 
-    //Legacy gradle configs
-    public static final String CONFIG_DOPPL = 'doppl'
-    public static final String CONFIG_DOPPL_ONLY = 'dopplOnly'
-    public static final String CONFIG_TEST_DOPPL = 'testDoppl'
+    @Nested
+    Map<String, J2objcDependency> dependencyMap = new HashMap<>()
 
-    //Main gradle configs
-    public static final String CONFIG_J2OBJC = 'j2objc'
-    public static final String CONFIG_J2OBJC_ONLY = 'j2objcOnly'
-    public static final String CONFIG_TEST_J2OBJC = 'testJ2objc'
+    void forConfiguration(String... configs) {
+        for (String config : configs) {
+            configForConfig(config)
+        }
+    }
 
-    List<J2objcDependency> translateJ2objcLibs = new ArrayList<>()
-    List<J2objcDependency> translateJ2objcTestLibs = new ArrayList<>()
+    @OutputDirectory
+    File destinationDir = new File("${project.buildDir}/j2objcBuild/dependencies/exploded/${basename}")
+
+    @OutputDirectories
+    DefaultDomainObjectSet<File> dependencyJavaDirs = new DefaultDomainObjectSet<>(File.class)
+
+    @OutputDirectories
+    DefaultDomainObjectSet<File> dependencyNativeDirs = new DefaultDomainObjectSet<>(File.class)
+
+    def getBasename() {
+        "${name.replaceAll(J2objcPlugin.J2OBJC_DEPENDENCY_RESOLVER, "")}"
+    }
 
     @TaskAction
-    void inflateAll()
-    {
-        configureAll()
-        for (J2objcDependency dep : translateJ2objcLibs) {
-            dep.expandDop(project)
-        }
-        for (J2objcDependency dep : translateJ2objcTestLibs) {
-            dep.expandDop(project)
+    void inflateAll() {
+        dependencyMap.values().each {
+            it.expandDop(project)
+
+            if (it.dependencyNativeFolder().exists()) {
+                dependencyNativeDirs.add(it.dependencyNativeFolder())
+            }
         }
     }
 
-    void configureAll() {
-        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
-
-        Map<String, J2objcDependency> dependencyMap = new HashMap<>()
-
-        configForConfig(CONFIG_DOPPL, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcFile(), dependencyMap)
-        configForConfig(CONFIG_J2OBJC, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcFile(), dependencyMap)
-        configForConfig(CONFIG_DOPPL_ONLY, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcOnlyFile(), dependencyMap)
-        configForConfig(CONFIG_J2OBJC_ONLY, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcOnlyFile(), dependencyMap)
-        configForConfig(CONFIG_TEST_DOPPL, translateJ2objcTestLibs, j2objcInfo.dependencyExplodedTestJ2objcFile(), dependencyMap)
-        configForConfig(CONFIG_TEST_J2OBJC, translateJ2objcTestLibs, j2objcInfo.dependencyExplodedTestJ2objcFile(), dependencyMap)
-    }
-
-    void configForConfig(String configName,
-                         List<J2objcDependency> dependencyList,
-                         File explodedPath,
-                         Map<String, J2objcDependency> dependencyMap){
-        Project localProject = project
-        configForProject(localProject, configName, dependencyList, dependencyMap, explodedPath)
+    void configForConfig(String configName){
+        configForProject(project, configName)
     }
 
     private void configForProject(Project localProject,
-                                  String configName,
-                                  List<J2objcDependency> dependencyList,
-                                  Map<String, J2objcDependency> dependencyMap,
-                                  File explodedPath) {
-        def dependencyConfig = localProject.configurations.getByName(configName)
+                                  String configName) {
+        Configuration dependencyConfig = localProject.configurations.getByName(configName)
 
         //Add project dependencies
-        dependencyConfig.dependencies.each {
+        dependencyConfig.dependencies.all {
             if (it instanceof ProjectDependency) {
 
                 Project beforeProject = it.dependencyProject
@@ -94,46 +94,41 @@ class DependencyResolver extends DefaultTask{
                             new File(beforeProject.projectDir, "src/main")
                     )
 
-                    dependencyList.add(
-                            dependency
-                    )
-
                     dependencyMap.put(projectDependencyKey, dependency)
-                    configForProject(beforeProject, configName, dependencyList, dependencyMap, explodedPath)
+                    configForProject(beforeProject, configName)
                 }
             }
         }
 
-        //Add external "dop" file dependencies
-        dependencyConfig.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact ra ->
+        project.afterEvaluate {
+            dependencyConfig.resolvedConfiguration.resolvedArtifacts.each {
 
-            def extension = ra.extension
-            def classifier = ra.classifier
-            if ((extension != null && extension.equals("dop"))
-                    ||
-                (classifier != null && classifier.equals("sources")))
-              {
-                def group = ra.moduleVersion.id.group
-                def name = ra.moduleVersion.id.name
-                def version = ra.moduleVersion.id.version
+                def extension = it.extension
+                def classifier = it.classifier
+                if ("dop".equals(extension) || "sources".equals(classifier)) {
 
-                String mapKey = group + "_" + name + "_" + version
-                if (!dependencyMap.containsKey(mapKey)) {
+                    def group = it.moduleVersion.id.group
+                    def name = it.moduleVersion.id.name
+                    def version = it.moduleVersion.id.version
 
-                    def dependency = new J2objcDependency(
-                            group,
-                            name,
-                            version,
-                            explodedPath,
-                            ra.file
-                    )
+                    String mapKey = group + "_" + name + "_" + version
+                    if (!dependencyMap.containsKey(mapKey)) {
 
-                    dependencyList.add(dependency)
-                    dependencyMap.put(mapKey, dependency)
+                        def dependency = new J2objcDependency(
+                                group,
+                                name,
+                                version,
+                                destinationDir,
+                                it.file
+                        )
+
+                        dependencyMap.put(mapKey, dependency)
+
+                        dependencyJavaDirs.add(dependency.dependencyJavaFolder())
+                    }
                 }
             }
         }
     }
-
 
 }

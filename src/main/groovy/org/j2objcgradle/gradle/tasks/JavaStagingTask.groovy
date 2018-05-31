@@ -30,7 +30,6 @@ import org.gradle.api.tasks.incremental.InputFileDetails
 /**
  * Move java code to transpile directories
  */
-
 class JavaStagingTask extends DefaultTask {
 
     FileTree sourceFileTree

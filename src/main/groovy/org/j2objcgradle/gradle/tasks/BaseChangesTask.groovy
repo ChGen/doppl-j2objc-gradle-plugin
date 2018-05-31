@@ -45,5 +45,5 @@ class BaseChangesTask extends DefaultTask{
     }
 
     @Input
-    List<String> getTranslateJ2objcLibs() { return J2objcConfig.from(project).translateJ2objcLibs }
+    List<String> getTranslateJ2objcLibs() { return J2objcConfig.from(project).toBeTranslated }
 }

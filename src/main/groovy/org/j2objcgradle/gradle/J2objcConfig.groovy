@@ -98,14 +98,14 @@ class J2objcConfig {
      * <p/>
      * For example:
      * <pre>
-     * translateJ2objcLibs = ["j2objc_junit.jar", "jre_emul.jar"]
+     * toBeTranslated = ["j2objc_junit.jar", "jre_emul.jar"]
      * </pre>
      */
     // Issue with j2objc process. It needs package level annotations as jars, so
     // we include jsr305 here
     // J2objc default libraries, from $J2OBJC_HOME/lib/...
     // TODO: auto add libraries based on java dependencies, warn on version differences
-    List<String> translateJ2objcLibs = ["jre_emul.jar","jsr305-3.0.0.jar"]
+    List<String> toBeTranslated = ["jre_emul.jar","jsr305-3.0.0.jar"]
 
     /**
      * Sets the filter on files to translate.

@@ -52,13 +52,4 @@ class BuildContext {
         }
         return buildTypeProvider
     }
-
-    /**
-     * Made synchronized in case we have tasks in parallel.
-     *
-     * @return
-     */
-    synchronized DependencyResolver getDependencyResolver() {
-        return dependencyResolver
-    }
 }

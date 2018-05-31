@@ -21,9 +21,13 @@ import org.j2objcgradle.gradle.utils.validateFileContent
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.hamcrest.Matchers
+import org.hamcrest.Matchers.isOneOf
 import org.junit.Assert
+import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.Matchers.eq
 import java.io.File
 import kotlin.test.assertEquals
 
@@ -32,14 +36,14 @@ class J2objcConfigTest : BasicTestBase() {
 
     @Test
     fun testJavaDebug()
-    {///Users/kgalligan/devel/j2objc-gradle/testprojects/basicjava/src/main/java/co/touchlab/basicjava/GoBasicJava.java
+    {
         writeRunCustomConfig(config = "javaDebug true")
-        assertTrue("Line directive not found", validateFileContent(File(projectFolder, "build/j2objcBuild/source/out/main/mainSourceOut.m"), { s ->
+        assertTrue("Line directive not found", validateFileContent(File(projectFolder, "build/j2objcBuild/translated/main/mainSourceOut.m"), { s ->
             return@validateFileContent s.lines().any { it.startsWith("#line") && it.endsWith("src/main/java/co/touchlab/basicjava/GoBasicJava.java\"") }
         }))
 
         writeRunCustomConfig(config = "//javaDebug true")
-        assertTrue("Line directives still there", validateFileContent(File(projectFolder, "build/j2objcBuild/source/out/main/mainSourceOut.m"), { s ->
+        assertTrue("Line directives still there", validateFileContent(File(projectFolder, "build/j2objcBuild/translated/main/mainSourceOut.m"), { s ->
             return@validateFileContent !s.contains("#line")
         }))
     }
@@ -53,7 +57,7 @@ class J2objcConfigTest : BasicTestBase() {
             doppl "co.doppl.com.google.code.gson:gson:2.6.2.7"
         """)
 
-        val objcPath = "build/j2objcBuild/dependencies/out/main/mainDependencyOut.m"
+        val objcPath = "build/j2objcBuild/translated/main/mainDependenciesOut.m"
         assertTrue("Line directive not found", validateFileContent(File(projectFolder, objcPath), { s ->
             return@validateFileContent s.lines().any { it.startsWith("#line") && it.endsWith(".java\"") }
         }))
@@ -142,13 +146,14 @@ class J2objcConfigTest : BasicTestBase() {
 
         val result = buildResult()
 
-        Assert.assertEquals(result.task(":${J2objcPlugin.TASK_J2OBJC_BUILD}").getOutcome(), TaskOutcome.SUCCESS)
+        assertThat(result.task(":${J2objcPlugin.TASK_J2OBJC_BUILD}").outcome, isOneOf(TaskOutcome.SUCCESS, TaskOutcome.UP_TO_DATE))
     }
 
     private fun buildResult(): BuildResult {
         return GradleRunner.create()
                 .withPluginClasspath()
                 .withProjectDir(projectFolder)
+                .forwardOutput()
                 .withArguments("${J2objcPlugin.TASK_J2OBJC_BUILD}")
                 .build()
     }
