@@ -239,6 +239,51 @@ class BasicJ2objcProjectTest : BasicTestBase() {
         assertEquals(SUCCESS, result.task(":${J2objcPlugin.TASK_J2OBJC_CYCLE_FINDER}").outcome)
     }
 
+    @Test
+    fun checkNativeMainCompiles() {
+        createGsonDepBuildFile()
+
+        val result = GradleRunner.create()
+                .withPluginClasspath()
+                .forwardOutput()
+                .withProjectDir(projectFolder)
+                .withArguments("j2objcDebugStaticLibrary")
+                .build()
+
+        assertEquals(SUCCESS, result.task(":j2objcDebugStaticLibrary").outcome)
+        assertThat(File("${projectFolder.path}/build/libs/j2objc/static/debug/libj2objc.a"), FileMatchers.anExistingFile())
+    }
+
+
+    @Test
+    fun checkNativeTestCanBeBuilt() {
+        createGsonDepBuildFile()
+
+        val result = GradleRunner.create()
+                .withPluginClasspath()
+                .forwardOutput()
+                .withProjectDir(projectFolder)
+                .withArguments("testJ2objcDebugExecutable")
+                .build()
+
+        assertEquals(SUCCESS, result.task(":testJ2objcDebugExecutable").outcome)
+        assertThat(File("${projectFolder.path}/build/exe/testJ2objc/debug/testJ2objc"), FileMatchers.anExistingFile())
+    }
+
+    @Test
+    fun checkNativeTestExecuted() {
+        createGsonDepBuildFile()
+
+        val result = GradleRunner.create()
+                .withPluginClasspath()
+                .forwardOutput()
+                .withProjectDir(projectFolder)
+                .withArguments("testTranslatedDebug")
+                .build()
+
+        assertEquals(SUCCESS, result.task(":testTranslatedDebug").outcome)
+    }
+
 
     @Test
     fun dependenciesOnlyBuildOnce()
@@ -270,6 +315,7 @@ class BasicJ2objcProjectTest : BasicTestBase() {
         repositories {
             mavenCentral()
             maven { url 'https://dl.bintray.com/doppllib/maven2' }
+            maven { url 'https://dl.bintray.com/doppllib/j2objc' }
         }
 
         j2objcConfig {
@@ -295,6 +341,7 @@ class BasicJ2objcProjectTest : BasicTestBase() {
             doppl "co.doppl.com.google.code.gson:gson:2.6.2.7"
 
             testCompile group: 'junit', name: 'junit', version: '4.12'
+            testJ2objc "org.j2objcgradle.junit:junit:4.12.0"
         }
 
                     """)
@@ -316,6 +363,7 @@ class BasicJ2objcProjectTest : BasicTestBase() {
     repositories {
         mavenCentral()
         maven { url 'https://dl.bintray.com/doppllib/maven2' }
+        maven { url 'https://dl.bintray.com/doppllib/j2objc' }
     }
 
     j2objcConfig {
@@ -338,7 +386,11 @@ class BasicJ2objcProjectTest : BasicTestBase() {
     dependencies {
         doppl "co.doppl.com.squareup.okio:okio:1.13.0.0"
 
+        compile "com.google.code.gson:gson:2.6.2"
+        doppl "co.doppl.com.google.code.gson:gson:2.6.2.7"
+
         testCompile group: 'junit', name: 'junit', version: '4.12'
+        testJ2objc "org.j2objcgradle.junit:junit:4.12.0"
     }
 
                 """)
@@ -358,7 +410,8 @@ class BasicJ2objcProjectTest : BasicTestBase() {
         return GradleRunner.create()
                 .withPluginClasspath()
                 .withProjectDir(projectFolder)
-                .withArguments(J2objcPlugin.TASK_J2OBJC_BUILD)
+                .forwardOutput()
+                .withArguments(J2objcPlugin.TASK_J2OBJC_BUILD, "--stacktrace")
                 .build()
     }
 }

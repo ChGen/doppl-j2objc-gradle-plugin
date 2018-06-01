@@ -42,8 +42,18 @@ class TranslateTask extends BaseChangesTask {
     @Input
     def outBaseName
 
-    @InputFile
-    File dependencyMappings
+    @InputFiles
+    Set<File> dependencyMappings = []
+
+    void dependencyMappingFrom(TranslateTask task) {
+        dependsOn(task)
+        dependencyMappings.add task.outputMapping
+    }
+
+    void dependencyMappingFrom(TranslateDependenciesTask task) {
+        dependsOn(task)
+        dependencyMappings.add task.outputMapping
+    }
 
     @OutputFile
     File getOutputMapping() {
@@ -71,6 +81,7 @@ class TranslateTask extends BaseChangesTask {
     }
 
     List<DependencyResolver> resolvers = []
+    List<TranslateTask> dependencyTasks = []
 
     @InputFiles
     Set<File> getDependencyJavaFoldersAsFiles() {
@@ -80,24 +91,22 @@ class TranslateTask extends BaseChangesTask {
                 fs.add(it)
             }
         }
-        return fs
-    }
-
-    @InputFiles
-    FileCollection getDependencyJavaFoldersAsFileCollection() {
-        UnionFileCollection union = new UnionFileCollection()
-        resolvers.each {
-            it.dependencyJavaDirs.each {
-                union.add(project.files(it))
+        dependencyTasks.each {
+            it.inputSourceSets.each { f ->
+                fs.add(((ConfigurableFileTree)f).dir)
             }
         }
-        return union
+        return fs
     }
 
     def dependencies(DependencyResolver dependencyResolver) {
         dependsOn(dependencyResolver)
         resolvers.add(dependencyResolver)
-        inputFiles dependencyResolver.dependencyJavaDirs
+    }
+
+    def dependencies(TranslateTask task) {
+        dependsOn(task)
+        dependencyTasks.add(task)
     }
 
     def outBaseName(String outBaseName) {
@@ -222,7 +231,6 @@ class TranslateTask extends BaseChangesTask {
         if(allTranslateFiles.size() == 0)
             return
 
-        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
         String j2objcExecutable = "${getJ2objcHome()}/j2objc"
 
         sourcepathDirs.addAll(dependencyJavaFoldersAsFiles)
@@ -238,16 +246,7 @@ class TranslateTask extends BaseChangesTask {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream()
         ByteArrayOutputStream stderr = new ByteArrayOutputStream()
 
-        List<String> mappingFiles = new ArrayList<>()
         Map<String, String> allPrefixes = new HashMap<>(prefixMap)
-
-        addMappings(dependencyMappings, mappingFiles)
-
-        if(testBuild)
-        {
-            addMappings(j2objcInfo.dependencyOutTestMappings(), mappingFiles)
-            addMappings(j2objcInfo.sourceBuildOutMainMappings(), mappingFiles)
-        }
 
         File javaBatch = new File(baseDir, "javabatch.in")
         javaBatch.write(allTranslateFiles.join("\n"))
@@ -267,8 +266,8 @@ class TranslateTask extends BaseChangesTask {
                     args "-g", ''
                 }
 
-                if (mappingFiles.size() > 0) {
-                    args "--header-mapping", mappingFiles.join(",")
+                if (dependencyMappings.size() > 0) {
+                    args "--header-mapping", dependencyMappings.join(",")
                 }
 
                 args "-sourcepath", sourcepathArg

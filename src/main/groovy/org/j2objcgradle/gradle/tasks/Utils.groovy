@@ -570,4 +570,11 @@ class Utils {
         }
         assert false
     }
+
+    static def requireMacOSX(def what) {
+        if (!isMacOSX()) {
+            throw new InvalidUserDataException("Mac OS X is required for $what.")
+        }
+    }
+
 }

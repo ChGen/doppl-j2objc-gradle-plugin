@@ -139,7 +139,6 @@ class J2objcConfigTest : BasicTestBase() {
 
     }
 
-
     fun writeRunCustomConfig(depends: String = "", config: String = "")
     {
         writeCustomConfig(depends = depends, config = config)
@@ -174,9 +173,15 @@ class J2objcConfigTest : BasicTestBase() {
     repositories {
         mavenCentral()
         maven { url 'https://dl.bintray.com/doppllib/maven2' }
+        maven { url 'https://dl.bintray.com/doppllib/j2objc' }
     }
 
     dependencies {
+        compile "com.google.code.gson:gson:2.6.2"
+        doppl "co.doppl.com.google.code.gson:gson:2.6.2.7"
+
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+        testJ2objc "org.j2objcgradle.junit:junit:4.12.0"
         $depends
     }
 

@@ -28,6 +28,7 @@ import org.j2objcgradle.gradle.tasks.J2objcAssemblyTask
 import org.j2objcgradle.gradle.tasks.PodspecWriterTask
 import org.j2objcgradle.gradle.tasks.PodManagerTask
 import org.j2objcgradle.gradle.tasks.ListTestsTask
+import org.j2objcgradle.gradle.tasks.TestTask
 import org.j2objcgradle.gradle.tasks.TranslateDependenciesTask
 import org.j2objcgradle.gradle.tasks.TranslateTask
 import org.j2objcgradle.gradle.tasks.Utils
@@ -203,8 +204,8 @@ class J2objcPlugin implements Plugin<Project> {
                 dependencies mainDependencyResolver
                 outBaseName "main"
                 inputFileTrees buildContext.buildTypeProvider.sourceSets(project)
-                dependsOn depTranslate
-                dependencyMappings = depTranslate.outputMapping
+
+                dependencyMappingFrom depTranslate
 
             }
 
@@ -217,12 +218,17 @@ class J2objcPlugin implements Plugin<Project> {
                 // Output directories of 'j2objcTranslate', input for all other tasks
                 testBuild = true
                 dependencies testDependencyResolver
+                dependencies mainDependencyResolver
+                dependencies mainTranslate
                 outBaseName "test"
                 inputFileTrees buildContext.buildTypeProvider.testSourceSets(project)
-                dependsOn testDepTranslate
-                dependencyMappings = testDepTranslate.outputMapping
 
+                dependencyMappingFrom depTranslate
+                dependencyMappingFrom testDepTranslate
+                dependencyMappingFrom mainTranslate
             }
+
+
 
             afterEvaluate {
 
@@ -335,6 +341,46 @@ Link this path into the podfile of the consumer ios project and run pod install.
                 }
 
             }
+
+            Task assembleTestFrameworkPod = tasks.create(
+                    name: "assembleTestFrameworkPod",
+                    type: Copy
+            ) {
+
+                group 'j2objc'
+                into "$buildDir/pods/test"
+                from(testPodspec)
+                from(testTranslate) {
+                    into "src"
+                    include "**/*.h"
+                    include "**/*.m"
+                    include "**/*.cpp"
+                }
+                from(testDepTranslate) {
+                    into "src"
+                    include "**/*.h"
+                    include "**/*.m"
+                    include "**/*.cpp"
+                }
+
+                testDependencyResolver.dependencyNativeDirs.all {
+                    from(it) {
+                        into("src")
+                    }
+                }
+            }
+
+            tasks.create(
+                    name: "testTranslatedDebug",
+                    type: TestTask
+            ) { test ->
+                testSources buildContext.buildTypeProvider.testSourceSets(project)
+                buildType = "Debug"
+                dependsOn 'testJ2objcDebugExecutable'
+                testBinaryFile = file("${buildDir}/exe/testJ2objc/debug/testJ2objc")
+            }
+
+            new NativeCompilation(project).apply(assembleMainFrameworkPod, assembleTestFrameworkPod)
 
             Task archiveMainFrameworkPod = tasks.create(
                     name: "archiveMainFrameworkPod",
