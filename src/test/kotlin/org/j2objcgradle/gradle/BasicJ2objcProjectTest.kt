@@ -340,6 +340,8 @@ class BasicJ2objcProjectTest : BasicTestBase() {
             compile "com.google.code.gson:gson:2.6.2"
             doppl "co.doppl.com.google.code.gson:gson:2.6.2.7"
 
+            compile "javax.inject:javax.inject:1"
+
             testCompile group: 'junit', name: 'junit', version: '4.12'
             testJ2objc "org.j2objcgradle.junit:junit:4.12.0"
         }
@@ -388,6 +390,8 @@ class BasicJ2objcProjectTest : BasicTestBase() {
 
         compile "com.google.code.gson:gson:2.6.2"
         doppl "co.doppl.com.google.code.gson:gson:2.6.2.7"
+
+        compile "javax.inject:javax.inject:1"
 
         testCompile group: 'junit', name: 'junit', version: '4.12'
         testJ2objc "org.j2objcgradle.junit:junit:4.12.0"

@@ -182,6 +182,9 @@ class J2objcConfigTest : BasicTestBase() {
 
         testCompile group: 'junit', name: 'junit', version: '4.12'
         testJ2objc "org.j2objcgradle.junit:junit:4.12.0"
+
+        compile "javax.inject:javax.inject:1"
+
         $depends
     }
 

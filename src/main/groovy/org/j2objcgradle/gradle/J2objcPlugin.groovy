@@ -187,6 +187,7 @@ class J2objcPlugin implements Plugin<Project> {
                 description "Translates main java source files to Objective-C"
                 _buildContext = buildContext
                 dependencies mainDependencyResolver
+                dependencies buildDependencyResolver
                 outBaseName "main"
                 inputFileTrees buildContext.buildTypeProvider.sourceSets(project)
 
@@ -203,6 +204,7 @@ class J2objcPlugin implements Plugin<Project> {
                 // Output directories of 'j2objcTranslate', input for all other tasks
                 testBuild = true
                 dependencies testDependencyResolver
+                dependencies buildDependencyResolver
                 dependencies mainDependencyResolver
                 dependencies mainTranslate
                 outBaseName "test"
@@ -397,6 +399,8 @@ class J2objcPlugin implements Plugin<Project> {
                inputFileTrees buildContext.buildTypeProvider.sourceSets(project)
                inputFiles mainDependencyResolver.dependencyJavaDirs
                dependencies mainDependencyResolver
+               inputFiles buildDependencyResolver.dependencyJavaDirs
+               dependencies buildDependencyResolver
 
            }
 
