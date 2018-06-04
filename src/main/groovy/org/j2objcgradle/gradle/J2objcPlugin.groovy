@@ -332,13 +332,6 @@ class J2objcPlugin implements Plugin<Project> {
                         into("src")
                     }
                 }
-                finalizedBy tasks.create(name: "showDevPodUsage") {
-                    doLast {
-                        println """Development pod created under: ${destinationDir}
-Link this path into the podfile of the consumer ios project and run pod install.
-"""
-                    }
-                }
 
             }
 
@@ -380,7 +373,7 @@ Link this path into the podfile of the consumer ios project and run pod install.
                 testBinaryFile = file("${buildDir}/exe/testJ2objc/debug/testJ2objc")
             }
 
-            new NativeCompilation(project).apply(assembleMainFrameworkPod, assembleTestFrameworkPod)
+            new NativeCompilation(project).apply(assembleMainFrameworkPod, mainFrameworkConfig, assembleTestFrameworkPod, testFrameworkConfig)
 
             Task archiveMainFrameworkPod = tasks.create(
                     name: "archiveMainFrameworkPod",

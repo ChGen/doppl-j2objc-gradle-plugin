@@ -16,7 +16,11 @@
 
 package org.j2objcgradle.gradle
 
+import org.gradle.api.Action
 import org.gradle.api.tasks.Input
+import org.gradle.nativeplatform.NativeBinarySpec
+import org.gradle.nativeplatform.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.NativeLibraryBinarySpec
 import org.j2objcgradle.gradle.tasks.Utils
 import org.gradle.api.Project
 
@@ -46,18 +50,6 @@ class FrameworkConfig {
     boolean flagObjc = true
 
     @Input
-    boolean libZ = true
-
-    @Input
-    boolean libSqlite3 = true
-
-    @Input
-    boolean libIconv = true
-
-    @Input
-    boolean libJre_emul = true
-
-    @Input
     List<String> managedPodsList = new ArrayList<>()
 
     void managePod(String... paths)
@@ -68,44 +60,44 @@ class FrameworkConfig {
     }
 
     @Input
-    List<String> addLibraries = new ArrayList<>()
+    Set<String> libs = [ "z", "sqlite3", "iconv", "jre_emul" ]
 
-    void addLibraries(String... libs)
+    void libs(String... libs)
     {
         for (String l : libs) {
-            this.addLibraries.add(l)
-        }
-    }
-
-    boolean frameworkUIKit = true
-
-    @Input
-    List<String> addFrameworks = new ArrayList<>()
-
-    void addFrameworks(String... frameworks)
-    {
-        for (String f : frameworks) {
-            this.addFrameworks(f)
+            this.libs.add(l)
         }
     }
 
     String writeLibs()
     {
-        List<String> allLibs = new ArrayList<>(addLibraries)
-        if(libZ)allLibs.add("z")
-        if(libSqlite3)allLibs.add("sqlite3")
-        if(libIconv)allLibs.add("iconv")
-        if(libJre_emul)allLibs.add("jre_emul")
-
-        return "'"+ allLibs.join("', '") +"'"
+        return "'"+ libs.join("', '") +"'"
     }
 
-    String writeFrameworks()
-    {
-        List<String> allFrameworks = new ArrayList<>(addFrameworks)
-        if(frameworkUIKit)allFrameworks.add("UIKit")
+    @Input
+    Set<String> frameworks = []
 
-        return "'"+ allFrameworks.join("', '") +"'"
+    void frameworks(String... frameworks)
+    {
+        for (String f : frameworks) {
+            this.frameworks.add(f)
+        }
+    }
+
+    String writeFrameworks() {
+        return "'"+ frameworks.join("', '") +"'"
+    }
+
+    def onBinaryShouldBeConfigured(NativeBinarySpec spec) {
+        binaryConfigurations.each { Action<NativeBinarySpec> action ->
+            action.execute(spec)
+        }
+    }
+
+    List<Action<NativeBinarySpec>> binaryConfigurations = []
+
+    def configureBinary(Action<NativeBinarySpec> config) {
+        binaryConfigurations.add(config)
     }
 
     String podspecTemplate (
@@ -148,8 +140,8 @@ Pod::Spec.new do |s|
 
     s.header_mappings_dir = "src"
     s.requires_arc = false
-    s.libraries = 'z', 'sqlite3', 'iconv', 'jre_emul'
-    s.frameworks = 'UIKit'
+    s.libraries = ${writeLibs()}
+    s.frameworks = ${writeFrameworks()}
 
     s.pod_target_xcconfig = {
      'HEADER_SEARCH_PATHS' => '${j2objcPath}/include',
