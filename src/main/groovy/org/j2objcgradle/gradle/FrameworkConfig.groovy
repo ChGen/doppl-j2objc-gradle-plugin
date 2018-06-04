@@ -85,7 +85,10 @@ class FrameworkConfig {
     }
 
     String writeFrameworks() {
-        return "'"+ frameworks.join("', '") +"'"
+        List allFrameworks = []
+        allFrameworks.addAll(frameworks)
+        allFrameworks.add("UIKit")
+        return "'"+ allFrameworks.join("', '") +"'"
     }
 
     def onBinaryShouldBeConfigured(NativeBinarySpec spec) {
