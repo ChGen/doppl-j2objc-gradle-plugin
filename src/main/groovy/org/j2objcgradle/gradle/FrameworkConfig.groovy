@@ -17,13 +17,10 @@
 package org.j2objcgradle.gradle
 
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.nativeplatform.NativeBinarySpec
-import org.gradle.nativeplatform.NativeExecutableBinarySpec
-import org.gradle.nativeplatform.NativeLibraryBinarySpec
 import org.j2objcgradle.gradle.tasks.Utils
-import org.gradle.api.Project
-
 
 class FrameworkConfig {
     private static final String SOURCE_EXTENSIONS = "h,m,cpp,properites,txt"

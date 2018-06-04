@@ -16,30 +16,15 @@
 
 package org.j2objcgradle.gradle
 
+import org.gradle.api.*
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.bundling.Compression
-import org.gradle.api.tasks.bundling.Tar
-import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.api.tasks.util.PatternSet
-import org.j2objcgradle.gradle.tasks.CleanJ2objcRuntimeTask
-import org.j2objcgradle.gradle.tasks.CycleFinderTask
-import org.j2objcgradle.gradle.tasks.J2objcAssemblyTask
-import org.j2objcgradle.gradle.tasks.PodspecWriterTask
-import org.j2objcgradle.gradle.tasks.PodManagerTask
-import org.j2objcgradle.gradle.tasks.ListTestsTask
-import org.j2objcgradle.gradle.tasks.TestTask
-import org.j2objcgradle.gradle.tasks.TranslateDependenciesTask
-import org.j2objcgradle.gradle.tasks.TranslateTask
-import org.j2objcgradle.gradle.tasks.Utils
-import org.gradle.api.DefaultTask
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.ProjectConfigurationException
-import org.gradle.api.Task
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.bundling.Compression
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Tar
+import org.j2objcgradle.gradle.tasks.*
 
 /*
  * Main plugin class for creation of extension object and all the tasks.
@@ -341,6 +326,7 @@ class J2objcPlugin implements Plugin<Project> {
             ) {
 
                 group 'j2objc'
+                description 'Creates a folder to be used as a cocoapod'
                 into "$buildDir/pods/test"
                 from(testPodspec)
                 from(testTranslate) {
@@ -367,6 +353,8 @@ class J2objcPlugin implements Plugin<Project> {
                     name: "testTranslatedDebug",
                     type: TestTask
             ) { test ->
+                group 'j2objc'
+                description 'Runs the translated unit tests'
                 testSources buildContext.buildTypeProvider.testSourceSets(project)
                 buildType = "Debug"
                 dependsOn 'testJ2objcDebugExecutable'
@@ -380,6 +368,7 @@ class J2objcPlugin implements Plugin<Project> {
                     type: Tar
             ) {
                 group 'j2objc'
+                description 'Creates a tgz to be uploaded to artifactory as a cocoapod'
                 compression Compression.GZIP
                 extension 'tar.gz'
                 baseName J2objcConfig.from(project).podName
