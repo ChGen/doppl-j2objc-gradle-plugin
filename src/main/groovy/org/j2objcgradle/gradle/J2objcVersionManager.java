@@ -50,12 +50,6 @@ public class J2objcVersionManager {
         }
     }
 
-    public static void verifyJ2objcRequirements(Project project) {
-        String j2objcHome = Utils.j2objcLocalHomeOrNull(project);
-
-        checkJ2objcValid(project, j2objcHome);
-    }
-
     private static void checkJ2objcValid(Project project, String j2objcHome) {
         if (j2objcHome == null) {
             throwJ2objcConfigFailure(J2OBJC_CONFIG_MESSAGE, null);

@@ -71,6 +71,11 @@ class TranslateTask extends BaseChangesTask {
     }
 
     @OutputFile
+    File getPrefixFile() {
+        return new File(project.buildDir, "$baseDir/prefixes.properties")
+    }
+
+    @OutputFile
     File getHeader() {
         new File(baseDir, "${fileName}.h")
     }
@@ -188,8 +193,8 @@ class TranslateTask extends BaseChangesTask {
         )
 
         if (prefixMap.size() > 0) {
-            def prefixes = new File(project.buildDir, "prefixes.properties")
-            def writer = new FileWriter(prefixes)
+
+            def writer = new FileWriter(prefixFile)
 
             Utils.propsFromStringMap(prefixMap).store(writer, null);
 

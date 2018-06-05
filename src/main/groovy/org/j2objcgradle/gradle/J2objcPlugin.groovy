@@ -132,9 +132,6 @@ class J2objcPlugin implements Plugin<Project> {
                 }
             }
 
-            // Produces a modest amount of output
-            logging.captureStandardOutput LogLevel.INFO
-
             // If users need to generate extra files that j2objc depends on, they can make this task dependent
             // on such generation.
 
@@ -361,6 +358,7 @@ class J2objcPlugin implements Plugin<Project> {
                 buildType = "Debug"
                 dependsOn 'testJ2objcDebugExecutable'
                 testBinaryFile = file("${buildDir}/exe/testJ2objc/debug/testJ2objc")
+                testPrefixesFile = mainTranslate.prefixFile
             }
 
             new NativeCompilation(project).apply(assembleMainFrameworkPod, mainFrameworkConfig, assembleTestFrameworkPod, testFrameworkConfig)

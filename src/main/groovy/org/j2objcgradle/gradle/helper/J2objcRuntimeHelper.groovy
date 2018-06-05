@@ -16,16 +16,19 @@
 
 package org.j2objcgradle.gradle.helper
 
+import org.gradle.api.logging.Logger
 import org.j2objcgradle.gradle.tasks.Utils
 import net.lingala.zip4j.exception.ZipException
 import org.gradle.api.Project
 import org.jetbrains.annotations.NotNull
 
+
 class J2objcRuntimeHelper {
+
     @NotNull
     static File runtimeDir(String version) {
         File j2objc = j2objcRuntimeDir()
-        return new File(j2objc, version)
+        return new File(j2objc, "j2objc-$version")
     }
 
     @NotNull
@@ -41,9 +44,11 @@ class J2objcRuntimeHelper {
     }
 
     static File checkAndDownload(Project project, String version) throws IOException {
-        File runtimeDirFile = runtimeDir(version)
-        if (checkJ2objcFoder(runtimeDirFile))
-            return runtimeDirFile
+        File runtimeDirFile = j2objcRuntimeDir()
+        Logger logger = project.logger
+
+        if (checkJ2objcFolder(new File("$runtimeDirFile/j2objc-$version")))
+            return new File("$runtimeDirFile/j2objc-$version")
 
         runtimeDirFile.mkdirs()
 
@@ -68,7 +73,7 @@ class J2objcRuntimeHelper {
             int partCount = 0
 
             int megs = contentLength / (1024 * 1024)
-            System.out.println("Downloading J2objc " + version + " size " + megs + "m")
+            logger.lifecycle("Downloading J2objc " + version + " size " + megs + "m")
             while ((read = inputStream.read(buf)) > -1) {
                 fos.write(buf, 0, read)
                 totalRead += read
@@ -85,21 +90,24 @@ class J2objcRuntimeHelper {
                         sb.append(' ')
                     }
                     int downMegs = totalRead / (1024 * 1024)
-                    System.out.println("[" + sb.toString() + "] " + downMegs + "/" + megs + "m")
+                    logger.lifecycle("[" + sb.toString() + "] " + downMegs + "/" + megs + "m")
                 }
             }
 
             fos.close()
 
-            System.out.println("Download complete")
+            logger.lifecycle("Download complete")
 
             if (tempFile.length() != contentLength) {
                 throw new IOException("File download failed (incorrect length)")
             }
 
+            logger.lifecycle("Extracting to "+runtimeDirFile)
+
             try {
                 ByteArrayOutputStream stdout = new ByteArrayOutputStream()
                 ByteArrayOutputStream stderr = new ByteArrayOutputStream()
+
 
                 Utils.projectExec(project, stdout, stderr, null, {
                     executable "unzip"
@@ -120,7 +128,7 @@ class J2objcRuntimeHelper {
             }
         }
 
-        return runtimeDirFile
+        return new File("$runtimeDirFile/j2objc-$version")
     }
 
     /**
@@ -128,11 +136,11 @@ class J2objcRuntimeHelper {
      *
      * @param runtimeDirFile
      */
-    private static boolean checkJ2objcFoder(File runtimeDirFile) {
-        return runtimeDirFile.exists() && new File(runtimeDirFile, "j2objc").exists()
+    private static boolean checkJ2objcFolder(File runtimeDirFile) {
+        return runtimeDirFile.exists()
     }
 
     private static String downloadUrl(String version) {
-        return "https://s3.amazonaws.com/dopplmaven/j2objc_emul_" + version + ".zip"
+        return "https://github.com/google/j2objc/releases/download/${version}/j2objc-${version}.zip"
     }
 }

@@ -10,7 +10,8 @@ import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.platform.base.Platform
 import org.j2objcgradle.gradle.tasks.TranslateDependenciesTask
-import org.j2objcgradle.gradle.tasks.TranslateTask;
+import org.j2objcgradle.gradle.tasks.TranslateTask
+import org.j2objcgradle.gradle.tasks.Utils;
 
 /**
  * Compilation of libraries for debug/release and architectures listed below.
@@ -23,10 +24,12 @@ class NativeCompilation {
 
     private final Project project
 
-    String j2objcPath = "/Users/bbanyai/.j2objc/runtime/j2objc-2.1.1"
-
     NativeCompilation(Project project) {
         this.project = project
+    }
+
+    def getJ2objcPath() {
+        return Utils.j2objcHome(project)
     }
 
     enum TargetSpec {
@@ -34,17 +37,6 @@ class NativeCompilation {
         TARGET_IOS_SIMULATOR,
         TARGET_OSX,
     }
-
-    String[] simulatorClangArgs = [
-            '-isysroot',
-            '/Applications/Xcode.app/Contents/Developer/Platforms/' +
-            'iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk',
-            ]
-    String[] iphoneClangArgs = [
-            '-isysroot',
-            '/Applications/Xcode.app/Contents/Developer/Platforms/' +
-            'iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk',
-            ]
 
     void definePlatforms(NamedDomainObjectContainer<Platform> d, List<String> names) {
         names.each { String name ->

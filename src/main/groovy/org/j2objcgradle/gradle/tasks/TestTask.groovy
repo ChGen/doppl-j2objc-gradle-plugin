@@ -23,6 +23,9 @@ class TestTask extends DefaultTask {
     @InputFile
     File testBinaryFile
 
+    @InputFile
+    File testPrefixesFile
+
     // 'Debug' or 'Release'
     @Input
     String buildType
@@ -43,12 +46,17 @@ class TestTask extends DefaultTask {
     void test() {
         Utils.requireMacOSX('j2objcTest task')
 
-//        // Test executable must be run from the same directory as the resources
-//        Utils.syncResourcesTo(project, ['main', 'test'], getJ2objcTestDirFile())
         Utils.projectCopy(project, {
             from testBinaryFile
             into getJ2objcTestDirFile()
         })
+
+        // Test executable must be run from the same directory as the resources
+        Utils.projectCopy(project, {
+            from testPrefixesFile
+            into getJ2objcTestDirFile()
+        })
+
 
         File copiedTestBinary = new File(getJ2objcTestDirFile(), testBinaryFile.getName())
         logger.debug("Test Binary: $copiedTestBinary")
