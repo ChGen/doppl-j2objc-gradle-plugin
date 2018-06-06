@@ -72,7 +72,7 @@ class TranslateTask extends BaseChangesTask {
 
     @OutputFile
     File getPrefixFile() {
-        return new File(project.buildDir, "$baseDir/prefixes.properties")
+        new File(baseDir, "prefixes.properties")
     }
 
     @OutputFile
@@ -192,14 +192,15 @@ class TranslateTask extends BaseChangesTask {
                 isEmitLineDirectives()
         )
 
+
         if (prefixMap.size() > 0) {
-
             def writer = new FileWriter(prefixFile)
-
-            Utils.propsFromStringMap(prefixMap).store(writer, null);
-
+            Utils.propsFromStringMap(prefixMap).store(writer, null)
             writer.close()
+        } else {
+            prefixFile.createNewFile()
         }
+
     }
 
     @InputFiles

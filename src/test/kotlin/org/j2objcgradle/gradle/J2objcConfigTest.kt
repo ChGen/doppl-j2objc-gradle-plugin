@@ -77,7 +77,7 @@ class J2objcConfigTest : BasicTestBase() {
     {
 
         writeRunCustomConfig(config = "translatedPathPrefix 'co.touchlab.basicjava', 'TBJ'")
-        assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "build/prefixes.properties"), { s ->
+        assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "build/j2objcBuild/translated/main/prefixes.properties"), { s ->
             return@validateFileContent s.contains("co.touchlab.basicjava=TBJ")
         }))
 
@@ -85,7 +85,7 @@ class J2objcConfigTest : BasicTestBase() {
         assertEquals(rerunResult.task(":j2objcMainTranslate").outcome, TaskOutcome.UP_TO_DATE)
 
         writeRunCustomConfig(config = "translatedPathPrefix 'co.touchlab.basicjava', 'GBJ'")
-        assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "build/prefixes.properties"), { s ->
+        assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "build/j2objcBuild/translated/main/prefixes.properties"), { s ->
             return@validateFileContent s.contains("co.touchlab.basicjava=GBJ")
         }))
     }

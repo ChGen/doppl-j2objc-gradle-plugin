@@ -54,7 +54,7 @@ class AdvancedAndroidProjectTest {
             translatedPathPrefix 'co.touchlab.mymodule', 'MM'
             """)
 
-        Assert.assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "mymodule/build/prefixes.properties"), { s ->
+        Assert.assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "mymodule/build/j2objcBuild/translated/main/prefixes.properties"), { s ->
             return@validateFileContent s.contains("co.touchlab.mymodule=MM")
         }))
 

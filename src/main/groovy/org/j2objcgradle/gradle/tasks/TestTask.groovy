@@ -57,7 +57,6 @@ class TestTask extends DefaultTask {
             into getJ2objcTestDirFile()
         })
 
-
         File copiedTestBinary = new File(getJ2objcTestDirFile(), testBinaryFile.getName())
         logger.debug("Test Binary: $copiedTestBinary")
 

@@ -67,10 +67,6 @@ class DependencyResolver extends DefaultTask {
     void inflateAll() {
         dependencyMap.values().each {
             it.expandDop(project)
-
-            if (it.dependencyNativeFolder().exists()) {
-                dependencyNativeDirs.add(it.dependencyNativeFolder())
-            }
         }
     }
 
@@ -125,6 +121,8 @@ class DependencyResolver extends DefaultTask {
                         dependencyMap.put(mapKey, dependency)
 
                         dependencyJavaDirs.add(dependency.dependencyJavaFolder())
+
+                        dependencyNativeDirs.add(dependency.dependencyNativeFolder())
                     }
                 }
             }
