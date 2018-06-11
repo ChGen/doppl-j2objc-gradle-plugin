@@ -38,6 +38,9 @@ class FrameworkConfig {
     String source = "{ :git => 'https://github.com/google/j2objc.git'}"
 
     @Input
+    String version = "unspecified"
+
+    @Input
     boolean writeActualJ2objcPath = true
 
     @Input
@@ -120,7 +123,7 @@ class FrameworkConfig {
 Pod::Spec.new do |s|
 
     s.name             = '${podname}'
-    s.version          = '0.1.0'
+    s.version          = '${version}'
     s.summary          = 'J2objc code framework'
 
     s.description      = <<-DESC
