@@ -120,23 +120,6 @@ class J2objcDependency {
                 cp.from project.zipTree(dopFile)
                 cp.into output()
             }
-
-            markReadOnlyRecursive(output())
-        }
-    }
-
-    void markReadOnlyRecursive(File dir)
-    {
-        File[] files = dir.listFiles()
-        for (File file : files) {
-            if(file.isDirectory())
-            {
-                markReadOnlyRecursive(file)
-            }
-            else if(file.getName().endsWith(".java"))
-            {
-                file.setReadOnly()
-            }
         }
     }
 
