@@ -117,8 +117,10 @@ class NativeCompilation {
             // Otherwise the Objective-C plugin skips creation of the compile tasks altogether.
             file("${buildDir}/j2objcHackToForceMainCompilation").mkdirs()
             file("${buildDir}/j2objcHackToForceMainCompilation/Empty.m").createNewFile()
+            file("${buildDir}/j2objcHackToForceMainCompilation/Empty.cpp").createNewFile()
             file("${buildDir}/j2objcHackToForceTestCompilation").mkdirs()
             file("${buildDir}/j2objcHackToForceTestCompilation/EmptyTest.m").createNewFile()
+            file("${buildDir}/j2objcHackToForceTestCompilation/EmptyTest.cpp").createNewFile()
 
             model {
                 buildTypes {
