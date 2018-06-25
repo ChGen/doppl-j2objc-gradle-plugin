@@ -104,21 +104,8 @@ class J2objcRuntimeHelper {
 
             logger.lifecycle("Extracting to "+runtimeDirFile)
 
-            try {
-                ByteArrayOutputStream stdout = new ByteArrayOutputStream()
-                ByteArrayOutputStream stderr = new ByteArrayOutputStream()
+            project.ant.unzip( src: tempFile, dest: runtimeDirFile )
 
-
-                Utils.projectExec(project, stdout, stderr, null, {
-                    executable "unzip"
-                    args "$tempFile.name"
-                    setStandardOutput stdout
-                    setErrorOutput stderr
-                    setWorkingDir runtimeDirFile
-                })
-            } catch (ZipException e) {
-                throw new IOException(e)
-            }
         } finally {
             if (tempFile.exists()) {
                 tempFile.delete()
