@@ -91,21 +91,29 @@ class J2objcPlugin implements Plugin<Project> {
                     transitive = true
                     description = 'For j2objc special packages'
                 }
-                doppl{
+                j2objcClasspath {
+                    transitive = true
+                    description = 'For java libraries that should be treated as a classpath argument'
+                }
+                doppl {
                     transitive = true
                     description = 'For doppl special packages'
                 }
-                j2objcOnly{
+                j2objcOnly {
                     transitive = true
                     description = 'For j2objc special packages, do not include in dependencies'
                 }
-                dopplOnly{
+                dopplOnly {
                     transitive = true
                     description = 'For doppl special packages, do not include in dependencies'
                 }
                 testJ2objc{
                     transitive = true
                     description = 'For j2objc testing special packages'
+                }
+                testJ2objcClasspath {
+                    transitive = true
+                    description = 'For java libraries that should be treated as a classpath argument'
                 }
                 testDoppl{
                     transitive = true
@@ -185,6 +193,7 @@ class J2objcPlugin implements Plugin<Project> {
                 _buildContext = buildContext
                 dependencies mainDependencyResolver
                 dependencies buildDependencyResolver
+                classpath configurations.j2objcClasspath
                 outBaseName "main"
                 inputFileTrees buildContext.buildTypeProvider.sourceSets(project)
 
@@ -204,6 +213,7 @@ class J2objcPlugin implements Plugin<Project> {
                 dependencies buildDependencyResolver
                 dependencies mainDependencyResolver
                 dependencies mainTranslate
+                classpath configurations.j2objcClasspath, configurations.testJ2objcClasspath
                 outBaseName "test"
                 inputFileTrees buildContext.buildTypeProvider.testSourceSets(project)
 

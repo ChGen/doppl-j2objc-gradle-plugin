@@ -17,6 +17,9 @@
 package org.j2objcgradle.gradle.tasks
 
 import groovy.transform.CompileStatic
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
@@ -45,6 +48,21 @@ class TranslateTask extends BaseChangesTask {
     @InputFiles
     Set<File> dependencyMappings = []
 
+    List<FileTree> inputSourceSets = []
+    List<DependencyResolver> resolvers = []
+    List<TranslateTask> dependencyTasks = []
+
+    Set<Configuration> classpath = []
+
+    @InputFiles
+    Collection<File> getClasspathFiles() {
+        Set<File> files = []
+        classpath.each {
+            files.addAll( it.resolvedConfiguration.files )
+        }
+        return files
+    }
+
     void dependencyMappingFrom(TranslateTask task) {
         dependsOn(task)
         dependencyMappings.add task.outputMapping
@@ -59,8 +77,6 @@ class TranslateTask extends BaseChangesTask {
     File getOutputMapping() {
         project.file("${project.buildDir}/j2objcBuild/${outBaseName}.mapping")
     }
-
-    List<FileTree> inputSourceSets = []
 
     def getFileName() {
         "${outBaseName}SourceOut"
@@ -85,9 +101,6 @@ class TranslateTask extends BaseChangesTask {
         new File(baseDir, "${fileName}.m")
     }
 
-    List<DependencyResolver> resolvers = []
-    List<TranslateTask> dependencyTasks = []
-
     @InputFiles
     Set<File> getDependencyJavaFoldersAsFiles() {
         Set<File> fs = []
@@ -102,6 +115,12 @@ class TranslateTask extends BaseChangesTask {
             }
         }
         return fs
+    }
+
+    def classpath(Configuration... dependency) {
+        dependency.each { Configuration it ->
+            classpath.add it
+        }
     }
 
     def dependencies(DependencyResolver dependencyResolver) {
@@ -244,6 +263,8 @@ class TranslateTask extends BaseChangesTask {
         UnionFileCollection classpathFiles = new UnionFileCollection([
                 project.files(Utils.j2objcLibs(getJ2objcHome(), getTranslateJ2objcLibs()))
         ])
+
+        classpathFiles += getClasspathFiles()
 
         String classpathArg = Utils.joinedPathArg(classpathFiles)
 
