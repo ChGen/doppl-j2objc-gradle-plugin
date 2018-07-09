@@ -25,6 +25,7 @@ import org.gradle.api.tasks.bundling.Compression
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.j2objcgradle.gradle.tasks.*
+import org.apache.tools.ant.taskdefs.condition.Os
 
 /*
  * Main plugin class for creation of extension object and all the tasks.
@@ -115,7 +116,6 @@ class J2objcPlugin implements Plugin<Project> {
             if(!J2objcConfig.from(project).skipDefaultDependencies) {
                 dependencies {
                     if (javaTypeProject) {
-                        J2objcVersionManager.checkJ2objcConfig(project, true)
                         compileOnly project.files(Utils.j2objcHome(project) + "/lib/jre_emul.jar")
                         testCompile project.files(Utils.j2objcHome(project) + "/lib/jre_emul.jar")
                     }
@@ -212,11 +212,13 @@ class J2objcPlugin implements Plugin<Project> {
                 dependencyMappingFrom mainTranslate
             }
 
-
-
             afterEvaluate {
 
-                J2objcVersionManager.checkJ2objcConfig(project, false)
+                if (Os.isFamily(Os.FAMILY_MAC)) {
+                    J2objcVersionManager.checkJ2objcConfig(project, false)
+                } else {
+                    logger.error "OS is NOT Mac OSX, j2objc tasks will not work!"
+                }
 
                 addManagedPods(
                         tasks,

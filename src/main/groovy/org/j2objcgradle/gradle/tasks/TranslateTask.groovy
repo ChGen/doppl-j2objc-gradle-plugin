@@ -169,8 +169,6 @@ class TranslateTask extends BaseChangesTask {
         if(testBuild && j2objcConfig.skipTests)
             return
 
-        J2objcVersionManager.checkJ2objcConfig(project, true)
-
         File objcDir = getObjcDir()
         if(objcDir != null)
         {

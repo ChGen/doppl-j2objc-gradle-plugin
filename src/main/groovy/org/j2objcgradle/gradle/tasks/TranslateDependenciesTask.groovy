@@ -90,8 +90,6 @@ class TranslateDependenciesTask extends BaseChangesTask {
 
         outputMapping.createNewFile()
 
-        J2objcVersionManager.checkJ2objcConfig(project, true)
-
         String j2objcExecutable = "${getJ2objcHome()}/j2objc"
 
         J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)

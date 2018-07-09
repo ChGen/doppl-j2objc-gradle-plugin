@@ -20,10 +20,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.j2objcgradle.gradle.helper.J2objcRuntimeHelper
 
-class CleanJ2objcRuntimeTask extends DefaultTask{
+class CleanJ2objcRuntimeTask extends DefaultTask {
+
     @TaskAction
-    void cleanAll()
-    {
+    void cleanAll() {
         J2objcRuntimeHelper.cleanRuntimeDir(project)
     }
 }

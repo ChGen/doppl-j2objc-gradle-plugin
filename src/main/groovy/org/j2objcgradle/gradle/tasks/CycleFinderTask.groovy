@@ -98,8 +98,6 @@ class CycleFinderTask extends DefaultTask {
     @TaskAction
     void cycleFinder() {
 
-        J2objcVersionManager.checkJ2objcConfig(project, true)
-
         File tempDir = File.createTempDir()
         tempDir.mkdirs()
 
