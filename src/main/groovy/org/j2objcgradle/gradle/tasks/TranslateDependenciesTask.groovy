@@ -19,16 +19,20 @@ package org.j2objcgradle.gradle.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.UnionFileTree
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.j2objcgradle.gradle.DependencyResolver
 import org.j2objcgradle.gradle.J2objcConfig
 import org.j2objcgradle.gradle.J2objcInfo
-import org.j2objcgradle.gradle.J2objcVersionManager
 
-class TranslateDependenciesTask extends BaseChangesTask {
+class TranslateDependenciesTask extends BaseTranslateTask {
 
     boolean testBuild
+
+    Set<DependencyResolver> resolvers = []
 
     @Input
     def outBaseName
@@ -51,7 +55,6 @@ class TranslateDependenciesTask extends BaseChangesTask {
         new File(baseDir, "${fileName}.m")
     }
 
-    Set<DependencyResolver> resolvers = []
 
     @InputFiles
     FileCollection dependencyJavaFoldersAsFileCollection() {
@@ -94,13 +97,6 @@ class TranslateDependenciesTask extends BaseChangesTask {
 
         J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
 
-
-        UnionFileCollection classpathFiles = new UnionFileCollection([
-                project.files(Utils.j2objcLibs(getJ2objcHome(), getTranslateJ2objcLibs()))
-        ])
-
-        String classpathArg = Utils.joinedPathArg(classpathFiles)
-
         List<File> sourcepathList = new ArrayList<>()
 
         if (!dependencyJavaFoldersAsFiles().empty) {
@@ -110,10 +106,10 @@ class TranslateDependenciesTask extends BaseChangesTask {
         }
         Map<String, String> allPrefixes = getPrefixes()
 
-        runTranslate(j2objcExecutable, j2objcInfo, sourcepathList, classpathArg, allPrefixes)
+        runTranslate(j2objcExecutable, j2objcInfo, sourcepathList, allPrefixes)
     }
 
-    private void runTranslate(String j2objcExecutable, J2objcInfo j2objcInfo, List<File> sourcepathList, String classpathArg,
+    private void runTranslate(String j2objcExecutable, J2objcInfo j2objcInfo, List<File> sourcepathList,
                               allPrefixes) {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream()
         ByteArrayOutputStream stderr = new ByteArrayOutputStream()
@@ -157,9 +153,7 @@ class TranslateDependenciesTask extends BaseChangesTask {
                     }
                 }
 
-                if(!classpathArg.isEmpty()) {
-                    args "-classpath", classpathArg
-                }
+                configureClasspathArg it
 
                 getTranslateArgs().each { String translateArg ->
                     args translateArg

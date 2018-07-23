@@ -174,6 +174,7 @@ class J2objcPlugin implements Plugin<Project> {
                 _buildContext = buildContext
                 testBuild = false
                 dependencies mainDependencyResolver, buildDependencyResolver
+                classpath configurations.j2objcClasspath
                 outBaseName "main"
 
             }
@@ -225,7 +226,7 @@ class J2objcPlugin implements Plugin<Project> {
             afterEvaluate {
 
                 if (Os.isFamily(Os.FAMILY_MAC)) {
-                    J2objcVersionManager.checkJ2objcConfig(project, false)
+                    J2objcVersionManager.checkJ2objcConfig(project, true)
                 } else {
                     logger.error "OS is NOT Mac OSX, j2objc tasks will not work!"
                 }

@@ -68,6 +68,8 @@ public class J2objcVersionManager {
             throwJ2objcConfigFailure("J2ObjC binary does not exist at " +
                     j2objcExecutable.getAbsolutePath() +"\n\n"+ J2OBJC_CONFIG_MESSAGE, null);
         }
+
+        j2objcExecutable.setExecutable(true);
     }
 
     private static void throwJ2objcConfigFailure(String preamble, Throwable cause) {

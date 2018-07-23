@@ -17,13 +17,8 @@
 package org.j2objcgradle.gradle.tasks
 
 import groovy.transform.CompileStatic
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
@@ -32,13 +27,12 @@ import org.gradle.util.ConfigureUtil
 import org.j2objcgradle.gradle.DependencyResolver
 import org.j2objcgradle.gradle.J2objcConfig
 import org.j2objcgradle.gradle.J2objcInfo
-import org.j2objcgradle.gradle.J2objcVersionManager
 
 /**
  * Translation task for Java to Objective-C using j2objc tool.
  */
 @CompileStatic
-class TranslateTask extends BaseChangesTask {
+class TranslateTask extends BaseTranslateTask {
 
     boolean testBuild
 
@@ -52,16 +46,6 @@ class TranslateTask extends BaseChangesTask {
     List<DependencyResolver> resolvers = []
     List<TranslateTask> dependencyTasks = []
 
-    Set<Configuration> classpath = []
-
-    @InputFiles
-    Collection<File> getClasspathFiles() {
-        Set<File> files = []
-        classpath.each {
-            files.addAll( it.resolvedConfiguration.files )
-        }
-        return files
-    }
 
     void dependencyMappingFrom(TranslateTask task) {
         dependsOn(task)
@@ -115,12 +99,6 @@ class TranslateTask extends BaseChangesTask {
             }
         }
         return fs
-    }
-
-    def classpath(Configuration... dependency) {
-        dependency.each { Configuration it ->
-            classpath.add it
-        }
     }
 
     def dependencies(DependencyResolver dependencyResolver) {
@@ -259,15 +237,6 @@ class TranslateTask extends BaseChangesTask {
         sourcepathDirs.addAll(dependencyJavaFoldersAsFiles)
         String sourcepathArg = Utils.joinedPathArg(sourcepathDirs)
 
-        //Classpath arg for translation. Includes user specified jars, j2objc 'standard' jars, and j2objc dependency libs
-        UnionFileCollection classpathFiles = new UnionFileCollection([
-                project.files(Utils.j2objcLibs(getJ2objcHome(), getTranslateJ2objcLibs()))
-        ])
-
-        classpathFiles += getClasspathFiles()
-
-        String classpathArg = Utils.joinedPathArg(classpathFiles)
-
         ByteArrayOutputStream stdout = new ByteArrayOutputStream()
         ByteArrayOutputStream stderr = new ByteArrayOutputStream()
 
@@ -277,7 +246,7 @@ class TranslateTask extends BaseChangesTask {
         javaBatch.write(allTranslateFiles.join("\n"))
 
         try {
-            Utils.projectExec(project, stdout, stderr, null, {
+            Utils.projectExec(project, stdout, stderr, null, { exec ->
                 executable j2objcExecutable
 
                 args "-d", Utils.relativePath(project.projectDir, project.file(baseDir))
@@ -297,9 +266,7 @@ class TranslateTask extends BaseChangesTask {
 
                 args "-sourcepath", sourcepathArg
 
-                if(!classpathArg.isEmpty()) {
-                    args "-classpath", classpathArg
-                }
+                configureClasspathArg(exec)
 
                 translateArgs.each { String translateArg ->
                     args translateArg
