@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.BuildContext
-import co.touchlab.doppl.gradle.DependencyResolver
-import co.touchlab.doppl.gradle.DopplConfig
-import co.touchlab.doppl.gradle.DopplDependency
-import co.touchlab.doppl.gradle.DopplInfo
-import co.touchlab.doppl.gradle.FrameworkConfig
+import org.j2objcgradle.gradle.BuildContext
+import org.j2objcgradle.gradle.J2objcConfig
+import org.j2objcgradle.gradle.J2objcDependency
+import org.j2objcgradle.gradle.J2objcInfo
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.TaskAction
-
-import java.nio.file.Files
+import org.j2objcgradle.gradle.DependencyResolver
+import org.j2objcgradle.gradle.FrameworkConfig
 
 class FrameworkTask extends DefaultTask {
 
@@ -54,12 +52,12 @@ class FrameworkTask extends DefaultTask {
     }
 
     static String podspecName(boolean test) {
-        test ? "testdoppllib" : "doppllib"
+        test ? "testj2objclib" : "j2objclib"
     }
 
-    private List<DopplDependency> dependencyList(boolean testBuild) {
+    private List<J2objcDependency> dependencyList(boolean testBuild) {
         DependencyResolver resolver = _buildContext.getDependencyResolver()
-        return testBuild ? resolver.translateDopplTestLibs : resolver.translateDopplLibs
+        return testBuild ? resolver.translateJ2objcTestLibs : resolver.translateJ2objcLibs
     }
 
     List<File> getJavaSourceFolders(boolean testBuild)
@@ -79,8 +77,8 @@ class FrameworkTask extends DefaultTask {
 
     @TaskAction
     public void writePodspec() {
-        def dopplConfig = DopplConfig.from(project)
-        if(test && dopplConfig.skipTests)
+        def j2objcConfig = J2objcConfig.from(project)
+        if(test && j2objcConfig.skipTests)
             return
 
         String specName = podspecName(test)
@@ -91,29 +89,29 @@ class FrameworkTask extends DefaultTask {
         List<File> srcHeaderFolders = new ArrayList<>()
         List<File> javaFolders = new ArrayList<>()
 
-        DopplInfo dopplInfo = DopplInfo.getInstance(project)
+        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
 
-        if(dopplConfig.emitLineDirectives)
+        if(j2objcConfig.emitLineDirectives)
             javaFolders.addAll(getJavaSourceFolders(false))
 
-        objcFolders.add(dopplInfo.dependencyOutFileMain())
-        objcFolders.add(dopplInfo.sourceBuildOutFileMain())
-        headerFolders.add(dopplInfo.dependencyOutFileMain())
-        headerFolders.add(dopplInfo.sourceBuildOutFileMain())
+        objcFolders.add(j2objcInfo.dependencyOutFileMain())
+        objcFolders.add(j2objcInfo.sourceBuildOutFileMain())
+        headerFolders.add(j2objcInfo.dependencyOutFileMain())
+        headerFolders.add(j2objcInfo.sourceBuildOutFileMain())
 
-        fillDependenciesFromList(dependencyList(false), objcFolders, srcHeaderFolders, dopplConfig.dependenciesEmitLineDirectives ? javaFolders : null)
+        fillDependenciesFromList(dependencyList(false), objcFolders, srcHeaderFolders, j2objcConfig.dependenciesEmitLineDirectives ? javaFolders : null)
 
         if(test)
         {
-            if(dopplConfig.emitLineDirectives)
+            if(j2objcConfig.emitLineDirectives)
                 javaFolders.addAll(getJavaSourceFolders(true))
 
-            objcFolders.add(dopplInfo.dependencyOutFileTest())
-            objcFolders.add(dopplInfo.sourceBuildOutFileTest())
-            headerFolders.add(dopplInfo.dependencyOutFileTest())
-            headerFolders.add(dopplInfo.sourceBuildOutFileTest())
+            objcFolders.add(j2objcInfo.dependencyOutFileTest())
+            objcFolders.add(j2objcInfo.sourceBuildOutFileTest())
+            headerFolders.add(j2objcInfo.dependencyOutFileTest())
+            headerFolders.add(j2objcInfo.sourceBuildOutFileTest())
 
-            fillDependenciesFromList(dependencyList(true), objcFolders, srcHeaderFolders, dopplConfig.dependenciesEmitLineDirectives ? javaFolders : null)
+            fillDependenciesFromList(dependencyList(true), objcFolders, srcHeaderFolders, j2objcConfig.dependenciesEmitLineDirectives ? javaFolders : null)
         }
 
         FrameworkConfig config = test ? FrameworkConfig.findTest(project) : FrameworkConfig.findMain(project)
@@ -158,11 +156,11 @@ class FrameworkTask extends DefaultTask {
         javaFolders.addAll(sourceFolders)
     }
 
-    private void fillDependenciesFromList(List<DopplDependency> mainDependencies,
+    private void fillDependenciesFromList(List<J2objcDependency> mainDependencies,
                                           ArrayList<File> objcFolders,
                                           ArrayList<File> headerFolders,
                                           ArrayList<File> javaFolders) {
-        for (DopplDependency dep : mainDependencies) {
+        for (J2objcDependency dep : mainDependencies) {
             File sourceFolder = new File(dep.dependencyFolderLocation(), "src")
             if (sourceFolder.exists()) {
                 objcFolders.add(sourceFolder)

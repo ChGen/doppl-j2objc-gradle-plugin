@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle
+package org.j2objcgradle.gradle
 
-import co.touchlab.doppl.gradle.tasks.FrameworkTask
-import co.touchlab.doppl.gradle.tasks.TranslateDependenciesTask
-import co.touchlab.doppl.gradle.tasks.TranslateTask
-import co.touchlab.doppl.gradle.tasks.Utils
-import org.bouncycastle.asn1.cmp.PKIFreeText
+import org.j2objcgradle.gradle.tasks.Utils
 import org.gradle.api.Project
 
 
@@ -28,17 +24,19 @@ class FrameworkConfig {
     private static final String SOURCE_EXTENSIONS = "h,m,cpp,properites,txt"
 
     static FrameworkConfig findMain(Project project) {
-        return project.dopplConfig.mainFramework
+        return project.j2objcConfig.mainFramework
     }
 
     static FrameworkConfig findTest(Project project) {
-        return project.dopplConfig.testFramework
+        return project.j2objcConfig.testFramework
     }
 
-    String homepage = "http://doppl.co/"
+    String homepage = "http://j2objc.org/"
     String license = "{ :type => 'Apache 2.0' }"
     String authors = "{ 'Filler Person' => 'filler@example.com' }"
-    String source = "{ :git => 'https://github.com/doppllib/doppl-gradle.git'}"
+    String source = "{ :git => 'https://github.com/google/j2objc.git'}"
+
+    boolean staticJ2objcLib = true
 
     final boolean test
 
@@ -91,7 +89,7 @@ class FrameworkConfig {
         if(libZ)allLibs.add("z")
         if(libSqlite3)allLibs.add("sqlite3")
         if(libIconv)allLibs.add("iconv")
-        if(libJre_emul)allLibs.add("jre_emul")
+        if(libJre_emul && staticJ2objcLib)allLibs.add("jre_emul") //for dynamic framework jre_emul is specified separately
 
         return "'"+ allLibs.join("', '") +"'"
     }
@@ -102,6 +100,14 @@ class FrameworkConfig {
         if(frameworkUIKit)allFrameworks.add("UIKit")
 
         return "'"+ allFrameworks.join("', '") +"'"
+    }
+
+    String writeLdFlags()
+    {
+        //for dynamic framework jre_emul is specified in OTHER_LDFLAGS, since
+        // in s.libraries it gets inherited by main app, which leads to double linking ->
+        // -> duplicated symbols -> very strange runtime errors like java Monitor Exceptions or Reflection Exceptions.
+        return staticJ2objcLib? "": "-ljre_emul"
     }
 
     String makePodFileList(List<String> parts)
@@ -142,6 +148,8 @@ class FrameworkConfig {
             List<File> srcHeaderFolders,
             List<File> javaFolders,
             String podname){
+
+        staticJ2objcLib = project.j2objcConfig.staticJ2objcLib
 
         String j2objcPath = writeActualJ2objcPath ? Utils.j2objcHome(project) : "\$(J2OBJC_LOCAL_PATH)"
 
@@ -190,7 +198,7 @@ Pod::Spec.new do |s|
 
   s.name             = '${podname}'
     s.version          = '0.1.0'
-    s.summary          = 'Doppl code framework'
+    s.summary          = 'J2objc code framework'
 
     s.description      = <<-DESC
   TODO: Add long description of the pod here.
@@ -211,14 +219,18 @@ Pod::Spec.new do |s|
     s.libraries = ${writeLibs()}
     s.frameworks = ${writeFrameworks()}
 
+    s.static_framework = ${staticJ2objcLib}
+
     s.pod_target_xcconfig = {
      'HEADER_SEARCH_PATHS' => '${srcHeaderLines.join(" ")}','LIBRARY_SEARCH_PATHS' => '${j2objcPath}/lib'${objcFlagString},
-'CLANG_WARN_DOCUMENTATION_COMMENTS' => 'NO',
-'GCC_WARN_64_TO_32_BIT_CONVERSION' => 'NO'
+     'CLANG_WARN_DOCUMENTATION_COMMENTS' => 'NO',
+     'GCC_WARN_64_TO_32_BIT_CONVERSION' => 'NO',
+     'OTHER_LDFLAGS' => \'${writeLdFlags()}\'
     }
     
     s.user_target_xcconfig = {
-     'HEADER_SEARCH_PATHS' => '${j2objcPath}/frameworks/JRE.framework/Headers'
+     'HEADER_SEARCH_PATHS' => '${j2objcPath}/frameworks/JRE.framework/Headers',
+     'LIBRARY_SEARCH_PATHS' => '${j2objcPath}/lib'${objcFlagString}
     }
     
     

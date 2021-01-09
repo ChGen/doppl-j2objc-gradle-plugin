@@ -15,92 +15,98 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle
+package org.j2objcgradle.gradle
 
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Resolves doppl dependencies. Can handle external artifacts as well as project dependencies
+ * Resolves j2objc dependencies. Can handle external artifacts as well as project dependencies
  */
 @CompileStatic
 class DependencyResolver extends DefaultTask{
 
+    //Legacy gradle configs
     public static final String CONFIG_DOPPL = 'doppl'
     public static final String CONFIG_DOPPL_ONLY = 'dopplOnly'
     public static final String CONFIG_TEST_DOPPL = 'testDoppl'
 
-    List<DopplDependency> translateDopplLibs = new ArrayList<>()
-    List<DopplDependency> translateDopplTestLibs = new ArrayList<>()
+    //Main gradle configs
+    public static final String CONFIG_J2OBJC = 'j2objc'
+    public static final String CONFIG_J2OBJC_ONLY = 'j2objcOnly'
+    public static final String CONFIG_TEST_J2OBJC = 'testJ2objc'
+
+    List<J2objcDependency> translateJ2objcLibs = new ArrayList<>()
+    List<J2objcDependency> translateJ2objcTestLibs = new ArrayList<>()
 
     @TaskAction
     void inflateAll()
     {
         configureAll()
-        for (DopplDependency dep : translateDopplLibs) {
+        for (J2objcDependency dep : translateJ2objcLibs) {
             dep.expandDop(project)
         }
-        for (DopplDependency dep : translateDopplTestLibs) {
+        for (J2objcDependency dep : translateJ2objcTestLibs) {
             dep.expandDop(project)
         }
     }
 
     void configureAll() {
-        DopplInfo dopplInfo = DopplInfo.getInstance(project)
+        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
 
-        Map<String, DopplDependency> dependencyMap = new HashMap<>()
+        Map<String, J2objcDependency> dependencyMap = new HashMap<>()
 
-        configForConfig(CONFIG_DOPPL, translateDopplLibs, dopplInfo.dependencyExplodedDopplFile(), dependencyMap)
-        configForConfig(CONFIG_DOPPL_ONLY, translateDopplLibs, dopplInfo.dependencyExplodedDopplOnlyFile(), dependencyMap)
-        configForConfig(CONFIG_TEST_DOPPL, translateDopplTestLibs, dopplInfo.dependencyExplodedTestDopplFile(), dependencyMap)
+        configForConfig(CONFIG_DOPPL, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcFile(), dependencyMap)
+        configForConfig(CONFIG_J2OBJC, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcFile(), dependencyMap)
+        configForConfig(CONFIG_DOPPL_ONLY, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcOnlyFile(), dependencyMap)
+        configForConfig(CONFIG_J2OBJC_ONLY, translateJ2objcLibs, j2objcInfo.dependencyExplodedJ2objcOnlyFile(), dependencyMap)
+        configForConfig(CONFIG_TEST_DOPPL, translateJ2objcTestLibs, j2objcInfo.dependencyExplodedTestJ2objcFile(), dependencyMap)
+        configForConfig(CONFIG_TEST_J2OBJC, translateJ2objcTestLibs, j2objcInfo.dependencyExplodedTestJ2objcFile(), dependencyMap)
     }
 
     void configForConfig(String configName,
-                         List<DopplDependency> dopplDependencyList,
+                         List<J2objcDependency> dependencyList,
                          File explodedPath,
-                         Map<String, DopplDependency> dependencyMap){
+                         Map<String, J2objcDependency> dependencyMap){
         Project localProject = project
-        configForProject(localProject, configName, dopplDependencyList, dependencyMap, explodedPath)
+        configForProject(localProject, configName, dependencyList, dependencyMap, explodedPath)
     }
 
     private void configForProject(Project localProject,
                                   String configName,
-                                  List<DopplDependency> dopplDependencyList,
-                                  Map<String, DopplDependency> dependencyMap,
+                                  List<J2objcDependency> dependencyList,
+                                  Map<String, J2objcDependency> dependencyMap,
                                   File explodedPath) {
-        def dopplConfig = localProject.configurations.getByName(configName)
+        def dependencyConfig = localProject.configurations.getByName(configName)
 
         //Add project dependencies
-        dopplConfig.dependencies.each {
+        dependencyConfig.dependencies.each {
             if (it instanceof ProjectDependency) {
 
                 Project beforeProject = it.dependencyProject
                 String projectDependencyKey = beforeProject.getPath()
                 if(!dependencyMap.containsKey(projectDependencyKey)) {
-                    DopplDependency dependency = new DopplDependency(
+                    J2objcDependency dependency = new J2objcDependency(
                             beforeProject.name,
                             new File(beforeProject.projectDir, "src/main")
-//                            DopplInfo.getInstance(beforeProject).rootAssemblyFile()
                     )
 
-                    dopplDependencyList.add(
+                    dependencyList.add(
                             dependency
                     )
 
                     dependencyMap.put(projectDependencyKey, dependency)
-                    configForProject(beforeProject, configName, dopplDependencyList, dependencyMap, explodedPath)
+                    configForProject(beforeProject, configName, dependencyList, dependencyMap, explodedPath)
                 }
             }
         }
 
         //Add external "dop" file dependencies
-        dopplConfig.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact ra ->
+        dependencyConfig.resolvedConfiguration.resolvedArtifacts.each { ResolvedArtifact ra ->
 
             def extension = ra.extension
             def classifier = ra.classifier
@@ -115,7 +121,7 @@ class DependencyResolver extends DefaultTask{
                 String mapKey = group + "_" + name + "_" + version
                 if (!dependencyMap.containsKey(mapKey)) {
 
-                    def dependency = new DopplDependency(
+                    def dependency = new J2objcDependency(
                             group,
                             name,
                             version,
@@ -123,7 +129,7 @@ class DependencyResolver extends DefaultTask{
                             ra.file
                     )
 
-                    dopplDependencyList.add(dependency)
+                    dependencyList.add(dependency)
                     dependencyMap.put(mapKey, dependency)
                 }
             }

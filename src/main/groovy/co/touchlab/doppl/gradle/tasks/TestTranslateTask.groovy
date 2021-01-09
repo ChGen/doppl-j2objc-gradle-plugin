@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.DopplConfig
+import org.j2objcgradle.gradle.J2objcConfig
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.UnionFileTree
@@ -41,20 +41,20 @@ class TestTranslateTask extends BaseChangesTask {
 
         FileTree allFiles = new UnionFileTree("testClasses", (Collection<? extends FileTree>) sourceDirs)
 
-        DopplConfig dopplConfig = DopplConfig.from(project)
+        J2objcConfig j2objcConfig = J2objcConfig.from(project)
 
         PatternSet testIdentifier
 
-        if (dopplConfig.testIdentifier == null) {
+        if (j2objcConfig.testIdentifier == null) {
             testIdentifier = new PatternSet().include("**/*Test.java")
         } else {
-            testIdentifier = dopplConfig.testIdentifier
+            testIdentifier = j2objcConfig.testIdentifier
         }
 
         FileCollection resultCollection = allFiles.matching(testIdentifier)
 
-        if (dopplConfig.translatePattern != null) {
-            resultCollection = resultCollection.matching(dopplConfig.translatePattern)
+        if (j2objcConfig.translatePattern != null) {
+            resultCollection = resultCollection.matching(j2objcConfig.translatePattern)
         }
 
         return resultCollection
@@ -63,7 +63,7 @@ class TestTranslateTask extends BaseChangesTask {
     @TaskAction
     void writeTestList() {
 
-        if(DopplConfig.from(project).skipTests)
+        if(J2objcConfig.from(project).skipTests)
             return
 
         // Don't evaluate this expensive property multiple times.

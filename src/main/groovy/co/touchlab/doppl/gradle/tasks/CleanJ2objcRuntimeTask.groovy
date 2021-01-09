@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.helper.J2objcRuntimeHelper
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import org.j2objcgradle.gradle.helper.J2objcRuntimeHelper
 
 class CleanJ2objcRuntimeTask extends DefaultTask{
     @TaskAction

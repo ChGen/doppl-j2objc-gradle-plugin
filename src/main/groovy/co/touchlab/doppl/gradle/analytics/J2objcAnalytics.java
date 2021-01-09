@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.analytics;
+package org.j2objcgradle.gradle.analytics;
 
-import co.touchlab.doppl.gradle.DopplConfig;
+import org.j2objcgradle.gradle.J2objcConfig;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -33,8 +33,8 @@ import java.util.Set;
 /**
  * Created by kgalligan on 4/7/17.
  */
-public class DopplAnalytics {
-    private static DopplAnalytics instance;
+public class J2objcAnalytics {
+    private static J2objcAnalytics instance;
     private static final int READ_TIMEOUT = 2000;
     private static final int CONNECT_TIMEOUT = 4000;
     private static final String ADDRESS_PREFIX = "https://api.mixpanel.com/track/?data=";
@@ -50,11 +50,11 @@ public class DopplAnalytics {
 
     // The list of packages the model classes reside in
     private Set<String> packages;
-    private DopplConfig config;
+    private J2objcConfig config;
     String j2objcVersion;
 
-    public DopplAnalytics(DopplConfig config,
-                          String j2objcVersion) {
+    public J2objcAnalytics(J2objcConfig config,
+                           String j2objcVersion) {
         this.config = config;
         this.j2objcVersion = j2objcVersion;
     }
@@ -103,7 +103,7 @@ public class DopplAnalytics {
         analyticsPackage.externalUser = false;
         analyticsPackage.anonMacAddress = analyticsPackage.distinct_id;
         analyticsPackage.j2objcVersion = this.j2objcVersion;
-        analyticsPackage.dopplVersion = findMyVersion();
+        analyticsPackage.j2objcGradleVersion = findMyVersion();
         analyticsPackage.hostOs = System.getProperty("os.name");
         analyticsPackage.hostOsVersion = System.getProperty("os.version");
         analyticsPackage.emitLineDirectives = config.getEmitLineDirectives();

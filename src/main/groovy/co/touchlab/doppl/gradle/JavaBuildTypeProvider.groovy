@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle
+package org.j2objcgradle.gradle
 
-import co.touchlab.doppl.gradle.tasks.Utils
+import org.j2objcgradle.gradle.tasks.Utils
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileTree
@@ -30,12 +30,12 @@ import org.gradle.api.file.FileTree
  */
 class JavaBuildTypeProvider implements BuildTypeProvider{
 
-    private final DopplConfig dopplConfig
+    private final J2objcConfig j2objcConfig
     private final Project project
 
     JavaBuildTypeProvider(Project project) {
         this.project = project
-        dopplConfig = DopplConfig.from(project)
+        j2objcConfig = J2objcConfig.from(project)
     }
 
     @Override
@@ -57,9 +57,9 @@ class JavaBuildTypeProvider implements BuildTypeProvider{
         List<FileTree> sources = new ArrayList<>()
         sources.add(project.fileTree('src/test/java'))
         sources.add(project.fileTree('build/classes/test'))
-        sources.add(project.fileTree('build/generated/source/apt/test'))
+        sources.add(project.fileTree('build/generated/source/apt/test')) //TODO: gradle-5.4.1
 
-        addConfigDirs(dopplConfig.generatedTestSourceDirs, sources)
+        addConfigDirs(j2objcConfig.generatedTestSourceDirs, sources)
 
         return sources
     }
@@ -69,9 +69,12 @@ class JavaBuildTypeProvider implements BuildTypeProvider{
         List<FileTree> sources = new ArrayList<>()
         sources.add(project.fileTree('src/main/java'))
         sources.add(project.fileTree('build/classes/main'))
-        sources.add(project.fileTree('build/generated/source/apt/main'))
+        //path before gradle-5.4.1
+        //sources.add(project.fileTree('build/generated/source/apt/main'))
+        //path since gradle-5.4.1
+        sources.add(project.fileTree('build/generated/ap_generated_sources'))
 
-        addConfigDirs(dopplConfig.generatedSourceDirs, sources)
+        addConfigDirs(j2objcConfig.generatedSourceDirs, sources)
 
         return sources
     }

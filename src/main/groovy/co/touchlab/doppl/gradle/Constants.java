@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle;
 
-import org.junit.Assert
-import org.junit.Test
-
-class UtilsTest {
-    @Test
-    fun testMaxArgs()
-    {
-        Assert.assertEquals("Mac max args incorrect", org.j2objcgradle.gradle.tasks.Utils.maxArgs(), 262144)
-    }
+public class Constants {
+    public static final String LINK_J20BJC_GRADLE_DOCS = "https://github.com/j2objcgradle/gradle";
 }

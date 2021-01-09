@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.DopplConfig
+import org.j2objcgradle.gradle.J2objcConfig
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
@@ -38,22 +38,22 @@ class JavaStagingTask extends DefaultTask {
 
     @InputFiles
     FileCollection getSrcFiles() {
-        DopplConfig dopplConfig = DopplConfig.from(project)
+        J2objcConfig j2objcConfig = J2objcConfig.from(project)
         FileTree fileTree = sourceFileTree
-        if(dopplConfig.translatePattern != null)
-            fileTree = fileTree.matching(dopplConfig.translatePattern)
+        if(j2objcConfig.translatePattern != null)
+            fileTree = fileTree.matching(j2objcConfig.translatePattern)
         return fileTree
     }
 
     @OutputDirectory
-    File getDopplJavaDirFile() {
+    File getJ2objcJavaDirFile() {
         return destDir
     }
 
     @TaskAction
     void stageJavaFiles(IncrementalTaskInputs inputs) {
 
-        logger.info("DopplGradle: staging-inputs.incremental: " + inputs.incremental)
+        logger.info("J2objcGradle: staging-inputs.incremental: " + inputs.incremental)
         if(inputs.incremental)
         {
             File baseDir = (File)sourceFileTree.dir
@@ -62,7 +62,7 @@ class JavaStagingTask extends DefaultTask {
                 @Override
                 void execute(InputFileDetails details) {
                     String subPath = Utils.relativePath(baseDir, details.file)// details.file.getPath().substring(baseDir.getPath().length())
-                    File newFile = new File(getDopplJavaDirFile(), subPath)
+                    File newFile = new File(getJ2objcJavaDirFile(), subPath)
 
                     project.copy {
                         from details.file
@@ -76,7 +76,7 @@ class JavaStagingTask extends DefaultTask {
                 @Override
                 void execute(InputFileDetails details) {
                     String subPath = details.file.getPath().substring(baseDir.getPath().length())
-                    File newFile = new File(getDopplJavaDirFile(), subPath)
+                    File newFile = new File(getJ2objcJavaDirFile(), subPath)
 
                     if(newFile.exists())
                         newFile.delete()
@@ -86,7 +86,7 @@ class JavaStagingTask extends DefaultTask {
         else {
             Utils.projectCopy(project, {
                 from getSrcFiles()
-                into getDopplJavaDirFile()
+                into getJ2objcJavaDirFile()
                 includeEmptyDirs = false
                 include '**/*.java'
             })

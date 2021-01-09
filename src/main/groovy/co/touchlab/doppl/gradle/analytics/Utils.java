@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.analytics;
+package org.j2objcgradle.gradle.analytics;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;

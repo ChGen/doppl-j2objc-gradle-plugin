@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.analytics;
+package org.j2objcgradle.gradle.analytics;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -29,7 +29,7 @@ public class AnalyticsPackage {
     @SerializedName("Anonymized MAC Address")
     String anonMacAddress;
     String j2objcVersion;
-    String dopplVersion;
+    String j2objcGradleVersion;
 
     @SerializedName("Host OS Type")
     String hostOs;

@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.DopplConfig
-import co.touchlab.doppl.gradle.helper.J2objcRuntimeHelper
 import com.google.common.annotations.VisibleForTesting
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
@@ -37,6 +35,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.internal.ExecException
 import org.gradle.util.GradleVersion
+import org.j2objcgradle.gradle.helper.J2objcRuntimeHelper
 
 import java.util.regex.Matcher
 
@@ -191,9 +190,9 @@ class Utils {
 
     static String j2objcDeclaredVersion(Project project)
     {
-        if(project.hasProperty("doppl_j2objc"))
+        if(project.hasProperty("j2objc_runtime"))
         {
-            return project.findProperty("doppl_j2objc").toString()
+            return project.findProperty("j2objc_runtime").toString()
         }
         else
         {
@@ -252,7 +251,7 @@ class Utils {
     // Provides a subset of "args" interface from project.exec as implemented by ExecHandleBuilder:
     // https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/groovy/org/gradle/process/internal/ExecHandleBuilder.java
     // Allows the following:
-    // dopplConfig {
+    // j2objcConfig {
     //     translateArgs '--no-package-directories', '--prefixes', 'prefixes.properties'
     // }
     @VisibleForTesting

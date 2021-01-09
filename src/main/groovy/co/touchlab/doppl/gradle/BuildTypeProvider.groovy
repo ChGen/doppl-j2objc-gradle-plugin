@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle
+package org.j2objcgradle.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Task

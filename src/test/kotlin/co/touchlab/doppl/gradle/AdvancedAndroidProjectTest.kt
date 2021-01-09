@@ -43,7 +43,7 @@ class AdvancedAndroidProjectTest {
         }))
 
         val rerunResult = buildResult()
-        Assert.assertEquals(rerunResult.task(":$MODULE:j2objcMainTranslate").outcome, TaskOutcome.UP_TO_DATE)
+        Assert.assertEquals(rerunResult.task(":$MODULE:j2objcMainTranslate")!!.outcome, TaskOutcome.UP_TO_DATE)
     }
 
     @Test
@@ -55,7 +55,7 @@ class AdvancedAndroidProjectTest {
         }))
 
         val rerunResult = buildResult()
-        Assert.assertEquals(rerunResult.task(":$MODULE:j2objcTestTranslate").outcome, TaskOutcome.UP_TO_DATE)
+        Assert.assertEquals(rerunResult.task(":$MODULE:j2objcTestTranslate")!!.outcome, TaskOutcome.UP_TO_DATE)
     }
 
     private fun writeRunCustomConfig(depends: String = "",
@@ -66,7 +66,7 @@ class AdvancedAndroidProjectTest {
         for (task in result.tasks) {
             println(task)
         }
-        Assert.assertEquals(result.task(":$MODULE:dopplBuild").outcome, TaskOutcome.SUCCESS)
+        Assert.assertEquals(result.task(":$MODULE:dopplBuild")!!.outcome, TaskOutcome.SUCCESS)
     }
 
     private fun writeBuildFile(depends: String = "",

@@ -57,7 +57,7 @@ class BasicAndroidProjectTest {
         }))
 
         val rerunResult = buildResult()
-        assertEquals(rerunResult.task(":app:j2objcMainTranslate").outcome, TaskOutcome.UP_TO_DATE)
+        assertEquals(rerunResult.task(":app:j2objcMainTranslate")!!.outcome, TaskOutcome.UP_TO_DATE)
     }
 
     @Test
@@ -87,7 +87,7 @@ class BasicAndroidProjectTest {
         }))
 
         val rerunResult = buildResult()
-        assertEquals(rerunResult.task(":app:j2objcTestTranslate").outcome, TaskOutcome.UP_TO_DATE)
+        assertEquals(rerunResult.task(":app:j2objcTestTranslate")!!.outcome, TaskOutcome.UP_TO_DATE)
     }
 
     private fun writeRunCustomConfig(depends: String = "", config: String = "")
@@ -131,7 +131,7 @@ class BasicAndroidProjectTest {
 
                 """)
         val result = buildResult()
-        assertEquals(result.task(":app:dopplBuild").outcome, TaskOutcome.SUCCESS)
+        assertEquals(result.task(":app:dopplBuild")!!.outcome, TaskOutcome.SUCCESS)
     }
 
     private fun buildResult(): BuildResult

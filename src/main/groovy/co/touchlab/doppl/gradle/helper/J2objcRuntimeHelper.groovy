@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.helper
+package org.j2objcgradle.gradle.helper
 
-import co.touchlab.doppl.gradle.tasks.Utils
+import org.j2objcgradle.gradle.tasks.Utils
 import net.lingala.zip4j.exception.ZipException
 import org.gradle.api.Project
 import org.jetbrains.annotations.NotNull
@@ -25,15 +25,21 @@ class J2objcRuntimeHelper {
     @NotNull
     static File runtimeDir(String version) {
         File j2objc = j2objcRuntimeDir()
-        return new File(j2objc, version)
+        String name = ""
+        if (version.startsWith("http")) {
+            name = "j2objc"
+        } else {
+            name = githubDownload(version) ? "j2objc-$version" : version
+        }
+        return new File(j2objc, name)
     }
 
     @NotNull
     private static File j2objcRuntimeDir() {
         File home = new File(System.getProperty("user.home"))
 
-        File doppl = new File(home, ".doppl")
-        return new File(doppl, "j2objc")
+        File j2objcDir = new File(home, ".j2objc")
+        return new File(j2objcDir, "runtime")
     }
 
     static void cleanRuntimeDir(Project project){
@@ -41,23 +47,49 @@ class J2objcRuntimeHelper {
     }
 
     static File checkAndDownload(Project project, String version) throws IOException {
-        File runtimeDirFile = runtimeDir(version)
-        if (checkJ2objcFoder(runtimeDirFile))
-            return runtimeDirFile
+        File j2objcRuntimeDirFile = runtimeDir(version)
+        if (checkJ2objcFoder(j2objcRuntimeDirFile))
+            return j2objcRuntimeDirFile
 
-        runtimeDirFile.mkdirs()
+        if(j2objcRuntimeDirFile.exists()){
+            j2objcRuntimeDirFile.deleteDir()
+        }
+
+        downloadInstallJ2objcRuntime(project, version)
+
+        return j2objcRuntimeDirFile
+    }
+
+    static def downloadInstallJ2objcRuntime(Project project, String version) {
+
+        File runtimeDirFile = null
+
+        if (version.startsWith("http")) {
+            println "is custom http(s) url"
+            runtimeDirFile = j2objcRuntimeDir()
+        } else if(githubDownload(version)){
+            println "is github"
+            runtimeDirFile = j2objcRuntimeDir()
+        }
+        else{
+            println "is not github"
+            runtimeDirFile = runtimeDir(version)
+            runtimeDirFile.mkdirs()
+        }
 
         URL website = new URL(downloadUrl(version))
         URLConnection urlConnection = website.openConnection()
         File tempFile = new File(runtimeDirFile, Long.toString(System.currentTimeMillis()))
 
+        println "tempFile ${tempFile.path}"
+
         try {
-            InputStream inputStream = urlConnection.getInputStream()
+            InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
             int contentLength = urlConnection.getContentLength()
 
-            FileOutputStream fos = new FileOutputStream(tempFile)
+            OutputStream fos = new BufferedOutputStream(new FileOutputStream(tempFile))
 
-            byte[] buf = new byte[2048]
+            byte[] buf = new byte[65536]
             int read
             int totalRead = 0
             int totalParts = 60
@@ -119,11 +151,8 @@ class J2objcRuntimeHelper {
                 ((HttpURLConnection) urlConnection).disconnect()
             }
         }
-
-        return runtimeDirFile
     }
-
-    /**
+/**
      * Sanity check to see if the folder has j2objc
      *
      * @param runtimeDirFile
@@ -132,7 +161,30 @@ class J2objcRuntimeHelper {
         return runtimeDirFile.exists() && new File(runtimeDirFile, "j2objc").exists()
     }
 
+    /**
+     * We're grabbing j2objc 2.1+ directly from github release urls. According to docs, there are no limits
+     * to those downloads, so we shouldn't be causing a hassle to anybody :)
+     *
+     * https://help.github.com/articles/distributing-large-binaries/
+     *
+     * @param version
+     * @return
+     */
     private static String downloadUrl(String version) {
-        return "https://s3.amazonaws.com/dopplmaven/j2objc_emul_" + version + ".zip"
+        //https://github.com/google/j2objc/releases/download/2.1.1/j2objc-2.1.1.zip
+
+        if (version.startsWith("http")) {
+            return version; // "Version" string contains runtime URL
+        }
+
+        if(githubDownload(version)){
+            return "https://github.com/google/j2objc/releases/download/${version}/j2objc-${version}.zip"
+        }else{
+            return "https://s3.amazonaws.com/dopplmaven/j2objc_emul_" + version + ".zip"
+        }
+    }
+
+    private static boolean githubDownload(String version){
+        return !version.startsWith("2.0.6")
     }
 }

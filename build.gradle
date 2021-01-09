@@ -15,14 +15,16 @@
  */
 // Based on https://plugins.gradle.org/docs/publish-plugin
 buildscript {
-    ext.kotlin_version = '1.1.60'
+    ext.kotlin_version = '1.3.30'
 
     repositories {
         jcenter()
+        google()
+        mavenCentral()
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.0'
+        classpath 'com.android.tools.build:gradle:3.4.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
@@ -39,7 +41,9 @@ apply plugin: 'com.jfrog.bintray'
 allprojects {
     repositories {
         jcenter()
+        google()
         mavenCentral()
+        maven { url 'https://plugins.gradle.org/m2/' }
     }
 }
 
@@ -47,30 +51,30 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    testCompile gradleTestKit()
-    compile 'com.android.tools.build:gradle:2.2.1'
-    compile 'org.codehaus.groovy:groovy-android-gradle-plugin:1.1.0'
-    compile 'com.google.code.gson:gson:2.7'
+    implementation gradleApi()
+    implementation localGroovy()
+    testImplementation gradleTestKit()
+    implementation 'com.android.tools.build:gradle:3.4.0'
+    implementation 'org.codehaus.groovy:groovy-android-gradle-plugin:1.1.0'
+    implementation 'com.google.code.gson:gson:2.7'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
-    compile 'net.lingala.zip4j:zip4j:1.3.2'
+    implementation 'net.lingala.zip4j:zip4j:1.3.2'
 
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 
-    testCompile "org.mockito:mockito-core:1.9.5"
-    testCompile 'junit:junit:4.11'
-    testCompile 'commons-io:commons-io:2.4'
+    testImplementation "org.mockito:mockito-core:1.9.5"
+    testImplementation 'junit:junit:4.11'
+    testImplementation 'commons-io:commons-io:2.4'
 
 }
 
 group = 'co.doppl'
 //Changed this a whole number to differentiate it from the core stuff. Confusing.
-version = '0.11.2'
+version = '0.13.5'
 
 project.tasks.all {
     if (it.name == 'publishPluginGroovyDocsJar' || it.name == 'publishPluginJavaDocsJar') {
@@ -101,7 +105,7 @@ publishing {
     }
     repositories {
         maven {
-            url dopplMavenDeploy
+            //url dopplMavenDeploy
         }
     }
 }
@@ -109,7 +113,7 @@ publishing {
 ext.bintrayGitUrl ='https://github.com/doppllib/doppl-gradle.git'
 ext.artifactId = 'gradle'
 
-apply from: "$dopplSharedScriptHome/bintray.gradle"
+//apply from: "$dopplSharedScriptHome/bintray.gradle"
 
 File _pdir = project.file('testprojects')
 File[] _dirs = _pdir.listFiles()
@@ -149,7 +153,7 @@ task buildgenPropertiesFile {
 
 processResources.dependsOn buildgenPropertiesFile
 
-compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
-compileKotlin.dependsOn compileGroovy
+//compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
+//compileKotlin.dependsOn compileGroovy
 compileKotlin.classpath += files(compileGroovy.destinationDir)
-classes.dependsOn compileKotlin
+//classes.dependsOn compileKotlin

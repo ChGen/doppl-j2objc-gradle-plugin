@@ -1,6 +1,5 @@
 /*
- * Original work Copyright (c) 2015 the authors of j2objc-gradle (see AUTHORS file)
- * Modified work Copyright (c) 2017 Touchlab Inc
+ * Copyright (c) 2017 Touchlab Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +14,31 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle
+package org.j2objcgradle.gradle
 
-import co.touchlab.doppl.gradle.tasks.Utils
-import com.google.common.annotations.VisibleForTesting
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
+import org.j2objcgradle.gradle.tasks.Utils
+
 /**
- * dopplConfig is used to configure the plugin with the project's build.gradle.
+ * j2objcConfig is used to configure the plugin with the project's build.gradle.
  */
 @CompileStatic
-class DopplConfig {
-    static DopplConfig from(Project project) {
-        return project.extensions.findByType(DopplConfig)
+class J2objcConfig {
+    static J2objcConfig from(Project project) {
+        return project.extensions.findByType(J2objcConfig)
     }
 
     final protected Project project
 
-    DopplConfig(Project project) {
+    J2objcConfig(Project project) {
         assert project != null
         this.project = project
     }
 
-    private DopplConfig(){}
+    private J2objcConfig(){}
 
     boolean skipTests = false
 
@@ -63,11 +62,18 @@ class DopplConfig {
 
     boolean disableAnalytics = false
 
+    boolean staticJ2objcLib = true
+
     /**
      * Additional generated source files directories
      */
     List<String> generatedSourceDirs = new ArrayList<>()
     List<String> generatedTestSourceDirs = new ArrayList<>()
+
+    /**
+     * Method name mapping files
+     */
+    List<String> methodMappingFiles = new ArrayList<>()
 
     /**
      * Command line arguments for j2objc cycle_finder.
@@ -132,6 +138,10 @@ class DopplConfig {
         Utils.appendArgs(this.generatedTestSourceDirs, 'generatedTestSourceDirs', true, generatedTestSourceDirs)
     }
 
+    void methodMappingFiles(String... methodMappingFiles){
+        Utils.appendArgs(this.methodMappingFiles, 'methodMappingFiles', true, methodMappingFiles)
+    }
+
     /**
      * Add command line arguments for j2objc cycle_finder.
      * <p/>
@@ -164,6 +174,11 @@ class DopplConfig {
     void translatedPathPrefix(String path, String prefix)
     {
         translatedPathPrefix.put(path, prefix)
+    }
+
+    void staticJ2objcLib(boolean useStaticLib)
+    {
+        staticJ2objcLib = useStaticLib
     }
 
     /**

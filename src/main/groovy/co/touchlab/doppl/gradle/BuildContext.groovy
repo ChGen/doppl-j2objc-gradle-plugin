@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle
+package org.j2objcgradle.gradle
 
-import co.touchlab.doppl.gradle.tasks.Utils
 import org.gradle.api.Project
+import org.j2objcgradle.gradle.tasks.Utils
 
 import javax.annotation.Nonnull
 

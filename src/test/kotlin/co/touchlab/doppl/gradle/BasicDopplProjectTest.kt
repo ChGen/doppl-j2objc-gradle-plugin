@@ -60,7 +60,7 @@ class BasicDopplProjectTest: BasicTestBase() {
     {
         runGsonDependencyBuild()
         val rerunResult = runProjectBuild()
-        assertEquals(rerunResult.task(":dopplDependencyTranslateMain").outcome, UP_TO_DATE)
+        assertEquals(rerunResult.task(":dopplDependencyTranslateMain")!!.outcome, UP_TO_DATE)
     }
 
     private fun runGsonDependencyBuild() {
@@ -97,7 +97,7 @@ class BasicDopplProjectTest: BasicTestBase() {
     private fun runValidateDopplBuild() :BuildResult{
         val result = runProjectBuild()
 
-        assertEquals(result.task(":dopplBuild").getOutcome(), SUCCESS)
+        assertEquals(result.task(":dopplBuild")!!.getOutcome(), SUCCESS)
 
         return result
     }

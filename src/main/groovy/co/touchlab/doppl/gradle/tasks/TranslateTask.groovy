@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.BuildContext
-import co.touchlab.doppl.gradle.BuildTypeProvider
-import co.touchlab.doppl.gradle.DopplConfig
-import co.touchlab.doppl.gradle.DopplDependency
-import co.touchlab.doppl.gradle.DopplInfo
-import co.touchlab.doppl.gradle.DopplVersionManager
-import co.touchlab.doppl.gradle.analytics.DopplAnalytics
+import org.j2objcgradle.gradle.BuildContext
+import org.j2objcgradle.gradle.J2objcConfig
+import org.j2objcgradle.gradle.J2objcDependency
+import org.j2objcgradle.gradle.J2objcInfo
+import org.j2objcgradle.gradle.J2objcVersionManager
 import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -31,7 +29,6 @@ import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -39,6 +36,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
+import org.j2objcgradle.gradle.BuildTypeProvider
 
 /**
  * Translation task for Java to Objective-C using j2objc tool.
@@ -56,12 +54,12 @@ class TranslateTask extends BaseChangesTask {
         BuildTypeProvider buildTypeProvider = _buildContext.getBuildTypeProvider()
         List<FileTree> sets = testBuild ? buildTypeProvider.testSourceSets(project) : buildTypeProvider.sourceSets(project)
         for (FileTree set : sets) {
-            fileTree.add(set)
+            fileTree.addToUnion(set) //TODO: deprecated?
         }
 
-        DopplConfig dopplConfig = DopplConfig.from(project)
-        if(dopplConfig.translatePattern != null) {
-            fileTree = fileTree.matching(dopplConfig.translatePattern)
+        J2objcConfig j2objcConfig = J2objcConfig.from(project)
+        if(j2objcConfig.translatePattern != null) {
+            fileTree = fileTree.matching(j2objcConfig.translatePattern)
         }
 
         fileTree = fileTree.matching(javaPattern {
@@ -78,11 +76,11 @@ class TranslateTask extends BaseChangesTask {
 
     File getMappingsFile()
     {
-        DopplInfo dopplInfo = DopplInfo.getInstance(project)
+        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
         if(testBuild)
-            return dopplInfo.sourceBuildOutTestMappings()
+            return j2objcInfo.sourceBuildOutTestMappings()
         else
-            return dopplInfo.sourceBuildOutMainMappings()
+            return j2objcInfo.sourceBuildOutMainMappings()
     }
 
     @Input
@@ -92,34 +90,34 @@ class TranslateTask extends BaseChangesTask {
     }
 
     @Input boolean isEmitLineDirectives() {
-        DopplConfig.from(project).emitLineDirectives
+        J2objcConfig.from(project).emitLineDirectives
     }
 
     @InputDirectory @Optional
     File getObjcDir(){
-        File f = testBuild ? project.file(DopplInfo.SOURCEPATH_OBJC_TEST) : project.file(DopplInfo.SOURCEPATH_OBJC_MAIN)
+        File f = testBuild ? project.file(J2objcInfo.SOURCEPATH_OBJC_TEST) : project.file(J2objcInfo.SOURCEPATH_OBJC_MAIN)
         return f.exists() ? f : null
     }
 
     @OutputDirectory
     File getBuildOut() {
         if(testBuild)
-            return DopplInfo.getInstance(project).sourceBuildOutFileTest()
+            return J2objcInfo.getInstance(project).sourceBuildOutFileTest()
         else
-            return DopplInfo.getInstance(project).sourceBuildOutFileMain()
+            return J2objcInfo.getInstance(project).sourceBuildOutFileMain()
     }
 
     @TaskAction
     void translate(IncrementalTaskInputs inputs) {
 
-        DopplConfig dopplConfig = DopplConfig.from(project)
-        if(testBuild && dopplConfig.skipTests)
+        J2objcConfig j2objcConfig = J2objcConfig.from(project)
+        if(testBuild && j2objcConfig.skipTests)
             return
 
-        DopplVersionManager.checkJ2objcConfig(project, true)
+        J2objcVersionManager.checkJ2objcConfig(project, true)
 
-        /*if(!dopplConfig.disableAnalytics) {
-            new DopplAnalytics(dopplConfig, Utils.findVersionString(project, Utils.j2objcHome(project))).execute()
+        /*if(!j2objcConfig.disableAnalytics) {
+            new J2objcAnalytics(j2objcConfig, Utils.findVersionString(project, Utils.j2objcHome(project))).execute()
         }*/
 
         File objcDir = getObjcDir()
@@ -178,14 +176,12 @@ class TranslateTask extends BaseChangesTask {
         if(allTranslateFiles.size() == 0)
             return
 
-        DopplInfo dopplInfo = DopplInfo.getInstance(project)
+        J2objcInfo j2objcInfo = J2objcInfo.getInstance(project)
         String j2objcExecutable = "${getJ2objcHome()}/j2objc"
 
         String sourcepathArg = Utils.joinedPathArg(sourcepathDirs)
 
-        List<DopplDependency> dopplLibs = getTranslateDopplLibs(_buildContext, testBuild)
-
-        //Classpath arg for translation. Includes user specified jars, j2objc 'standard' jars, and doppl dependency libs
+        //Classpath arg for translation. Includes user specified jars, j2objc 'standard' jars, and j2objc dependency libs
         UnionFileCollection classpathFiles = new UnionFileCollection([
                 project.files(Utils.j2objcLibs(getJ2objcHome(), getTranslateJ2objcLibs()))
         ])
@@ -198,18 +194,19 @@ class TranslateTask extends BaseChangesTask {
         List<String> mappingFiles = new ArrayList<>()
         Map<String, String> allPrefixes = new HashMap<>(prefixMap)
 
-        addMappings(dopplInfo.dependencyOutMainMappings(), mappingFiles)
+        addMappings(j2objcInfo.dependencyOutMainMappings(), mappingFiles)
 
         if(testBuild)
         {
-            addMappings(dopplInfo.dependencyOutTestMappings(), mappingFiles)
-            addMappings(dopplInfo.sourceBuildOutMainMappings(), mappingFiles)
+            addMappings(j2objcInfo.dependencyOutTestMappings(), mappingFiles)
+            addMappings(j2objcInfo.sourceBuildOutMainMappings(), mappingFiles)
         }
 
         File buildOut = getBuildOut()
         buildOut.mkdirs()
         File javaBatch = new File(buildOut, "javabatch.in")
 
+        J2objcConfig j2objcConfig = J2objcConfig.from(project)
 
         javaBatch.write(allTranslateFiles.join("\n"))
 
@@ -246,6 +243,10 @@ class TranslateTask extends BaseChangesTask {
                     args "--prefix", packageString + "=" + allPrefixes.get(packageString)
                 }
 
+                j2objcConfig.methodMappingFiles.each {String mappingFile ->
+                    args "--mapping", mappingFile
+                }
+
                 args "@${Utils.relativePath(project.projectDir, javaBatch)}"
 
                 setStandardOutput stdout
@@ -267,26 +268,26 @@ class TranslateTask extends BaseChangesTask {
             mappingFiles.add(mapFile.path)
     }
 
-    static List<DopplDependency> getTranslateDopplLibs(BuildContext _buildContext, boolean testBuild) {
-        List<DopplDependency> libs = new ArrayList<>()
-        libs.addAll(_buildContext.getDependencyResolver().translateDopplLibs)
+    static List<J2objcDependency> getTranslateJ2objcLibs(BuildContext _buildContext, boolean testBuild) {
+        List<J2objcDependency> libs = new ArrayList<>()
+        libs.addAll(_buildContext.getDependencyResolver().translateJ2objcLibs)
         if(testBuild)
         {
-            libs.addAll(_buildContext.getDependencyResolver().translateDopplTestLibs)
+            libs.addAll(_buildContext.getDependencyResolver().translateJ2objcTestLibs)
         }
         return libs
     }
 
     static Set<File> depJavaFolders(BuildContext _buildContext, boolean testBuild)
     {
-        List<DopplDependency> dopplLibs = getTranslateDopplLibs(_buildContext, testBuild)
+        List<J2objcDependency> j2objcLibs = getTranslateJ2objcLibs(_buildContext, testBuild)
 
-        return depLibsToJavaFolders(dopplLibs)
+        return depLibsToJavaFolders(j2objcLibs)
     }
 
-    static Set<File> depLibsToJavaFolders(List<DopplDependency> dopplLibs) {
+    static Set<File> depLibsToJavaFolders(List<J2objcDependency> j2objcLibs) {
         Set<File> javaFolders = new HashSet<>()
-        for (DopplDependency dependency : dopplLibs) {
+        for (J2objcDependency dependency : j2objcLibs) {
             File javaFolder = dependency.dependencyJavaFolder()
             if (javaFolder.exists())
                 javaFolders.add(javaFolder)

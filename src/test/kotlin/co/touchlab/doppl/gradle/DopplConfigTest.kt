@@ -78,7 +78,7 @@ class DopplConfigTest: BasicTestBase() {
         }))
 
         val rerunResult = buildResult()
-        assertEquals(rerunResult.task(":j2objcMainTranslate").outcome, TaskOutcome.UP_TO_DATE)
+        assertEquals(rerunResult.task(":j2objcMainTranslate")!!.outcome, TaskOutcome.UP_TO_DATE)
 
         writeRunCustomConfig(config = "translatedPathPrefix 'co.touchlab.basicjava', 'GBJ'")
         assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "build/prefixes.properties"), { s ->
@@ -94,7 +94,7 @@ class DopplConfigTest: BasicTestBase() {
         }))
 
         val rerunResult = buildResult()
-        assertEquals(rerunResult.task(":j2objcMainTranslate").outcome, TaskOutcome.UP_TO_DATE)
+        assertEquals(rerunResult.task(":j2objcMainTranslate")!!.outcome, TaskOutcome.UP_TO_DATE)
 
         writeRunCustomConfig(config = "translatedPathPrefix 'co.touchlab.basicjava', 'GBJ'")
         assertTrue("Prefix incorrectly generated", validateFileContent(File(projectFolder, "build/prefixes.properties"), { s ->
@@ -111,7 +111,7 @@ class DopplConfigTest: BasicTestBase() {
         }))
 
         val rerunResult = buildResult()
-        assertEquals(rerunResult.task(":j2objcTestTranslate").outcome, TaskOutcome.UP_TO_DATE)
+        assertEquals(rerunResult.task(":j2objcTestTranslate")!!.outcome, TaskOutcome.UP_TO_DATE)
 
         writeRunCustomConfig(config = """
             testIdentifier {
@@ -140,7 +140,7 @@ class DopplConfigTest: BasicTestBase() {
 
         val result = buildResult()
 
-        Assert.assertEquals(result.task(":dopplBuild").getOutcome(), TaskOutcome.SUCCESS)
+        Assert.assertEquals(result.task(":dopplBuild")!!.getOutcome(), TaskOutcome.SUCCESS)
     }
 
     private fun buildResult(): BuildResult {

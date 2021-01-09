@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.BuildContext
-import co.touchlab.doppl.gradle.BuildTypeProvider
-import co.touchlab.doppl.gradle.DopplConfig
-import co.touchlab.doppl.gradle.DopplDependency
-import co.touchlab.doppl.gradle.DopplInfo
+import org.j2objcgradle.gradle.BuildContext
+import org.j2objcgradle.gradle.J2objcConfig
+import org.j2objcgradle.gradle.J2objcDependency
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.j2objcgradle.gradle.BuildTypeProvider
 
 class PodManagerTask extends DefaultTask{
 
@@ -53,9 +50,9 @@ class PodManagerTask extends DefaultTask{
     {
         StringBuilder sb = new StringBuilder()
 
-        appendDependencyNames(_buildContext.getDependencyResolver().translateDopplLibs, sb)
+        appendDependencyNames(_buildContext.getDependencyResolver().translateJ2objcLibs, sb)
         if(testBuild)
-            appendDependencyNames(_buildContext.getDependencyResolver().translateDopplTestLibs, sb)
+            appendDependencyNames(_buildContext.getDependencyResolver().translateJ2objcTestLibs, sb)
 
         return sb.toString()
     }
@@ -63,13 +60,13 @@ class PodManagerTask extends DefaultTask{
     @Input
     boolean getJavaDebug()
     {
-        return DopplConfig.from(project).emitLineDirectives
+        return J2objcConfig.from(project).emitLineDirectives
     }
 
     @Input
     boolean getDependencyJavaDebug()
     {
-        return DopplConfig.from(project).dependenciesEmitLineDirectives
+        return J2objcConfig.from(project).dependenciesEmitLineDirectives
     }
 
     @Input
@@ -87,19 +84,19 @@ class PodManagerTask extends DefaultTask{
         List<File> allFiles = new ArrayList<File>()
 
         for (FileTree tree : buildTypeProvider.sourceSets(project)) {
-            fileTree.add(tree)
+            fileTree.addToUnion(tree)
         }
 
         if(testBuild)
         {
             for (FileTree tree : buildTypeProvider.testSourceSets(project)) {
-                fileTree.add(tree)
+                fileTree.addToUnion(tree)
             }
         }
 
-        DopplConfig dopplConfig = DopplConfig.from(project)
-        if(dopplConfig.translatePattern != null) {
-            fileTree = fileTree.matching(dopplConfig.translatePattern)
+        J2objcConfig j2objcConfig = J2objcConfig.from(project)
+        if(j2objcConfig.translatePattern != null) {
+            fileTree = fileTree.matching(j2objcConfig.translatePattern)
         }
 
         fileTree = fileTree.matching(TranslateTask.javaPattern {
@@ -146,8 +143,8 @@ class PodManagerTask extends DefaultTask{
         }
     }
 
-    private static void appendDependencyNames(ArrayList<DopplDependency> libs, StringBuilder sb) {
-        for (DopplDependency dependency : libs) {
+    private static void appendDependencyNames(ArrayList<J2objcDependency> libs, StringBuilder sb) {
+        for (J2objcDependency dependency : libs) {
             sb.append(dependency.dependencyFolderLocation().getName()).append("|")
         }
     }

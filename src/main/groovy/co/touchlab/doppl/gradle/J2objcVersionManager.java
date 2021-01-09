@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle;
+package org.j2objcgradle.gradle;
 
-import co.touchlab.doppl.gradle.helper.J2objcRuntimeHelper;
-import co.touchlab.doppl.gradle.tasks.Utils;
+import org.j2objcgradle.gradle.helper.J2objcRuntimeHelper;
+import org.j2objcgradle.gradle.tasks.Utils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 
@@ -27,17 +27,25 @@ import java.io.IOException;
 /**
  * Created by kgalligan on 1/19/17.
  */
-public class DopplVersionManager {
+public class J2objcVersionManager {
 
-    public static final String J2OBJC_CONFIG_MESSAGE = "J2objc config not complete. See: https://github.com/doppllib/doppl-gradle/blob/master/docs/J2OBJC_CONFIG.md";
+    public static final String J2OBJC_CONFIG_MESSAGE = "J2objc config not complete. See: "+ Constants.LINK_J20BJC_GRADLE_DOCS;
+    public static final String RUNTIME_CONFIGURATION_IS_AMBIGUOUS = "J2objc runtime configuration is ambiguous";
 
     public static void checkJ2objcConfig(Project project, boolean forceDownload) {
 
         String version = Utils.j2objcDeclaredVersion(project);
+        String j2objcHome = Utils.j2objcLocalHomeOrNull(project);
 
+        if(version != null && j2objcHome != null)
+        {
+            throwJ2objcConfigFailure(RUNTIME_CONFIGURATION_IS_AMBIGUOUS +
+                    ". Defined in both gradle.properties and local.properties",
+                    new IllegalArgumentException(RUNTIME_CONFIGURATION_IS_AMBIGUOUS));
+        }
         if (version == null) {
             //Check local.properties
-            String j2objcHome = Utils.j2objcLocalHomeOrNull(project);
+
             checkJ2objcValid(project, j2objcHome);
         } else if (forceDownload) {
             try {
@@ -77,10 +85,10 @@ public class DopplVersionManager {
     }
 
     private static void throwJ2objcConfigFailure(String preamble, Throwable cause) {
-        String message = ">>>>>>>>>>>>>>>> Doppl Tool Configuration Error <<<<<<<<<<<<<<<<\n" +
+        String message = ">>>>>>>>>>>>>>>> J2objc Gradle Configuration Error <<<<<<<<<<<<<<<<\n" +
                 preamble + "\n" +
                 "\n" +
-                "See 'Getting Started' at http://doppl.co\n";
+                "See 'Getting Started' at http://j2objc.org\n";
         if(cause == null)
             throw new InvalidUserDataException(message);
         else

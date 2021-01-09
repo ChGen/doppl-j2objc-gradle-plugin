@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.BuildContext
-import co.touchlab.doppl.gradle.BuildTypeProvider
-import co.touchlab.doppl.gradle.DopplConfig
-import co.touchlab.doppl.gradle.DopplInfo
+import org.j2objcgradle.gradle.BuildContext
+import org.j2objcgradle.gradle.J2objcConfig
+import org.j2objcgradle.gradle.J2objcInfo
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
@@ -30,30 +29,31 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.j2objcgradle.gradle.BuildTypeProvider
 
 /**
- * Copies artifacts into doppl directory structure
+ * Copies artifacts into j2objc directory structure
  */
 
-class DopplAssemblyTask extends DefaultTask {
+class J2objcAssemblyTask extends DefaultTask {
 
     BuildContext _buildContext
 
     @InputFiles
     FileCollection getInputFiles()
     {
-        FileTree fileTree = new UnionFileTree("DopplAssemblyTask")
+        FileTree fileTree = new UnionFileTree(getClass().getSimpleName())
 
         BuildTypeProvider buildTypeProvider = _buildContext.getBuildTypeProvider()
 
         List<FileTree> sets = buildTypeProvider.sourceSets(project)
         for (FileTree set : sets) {
-            fileTree.add(set)
+            fileTree.addToUnion(set)
         }
 
-        DopplConfig dopplConfig = DopplConfig.from(project)
-        if(dopplConfig.translatePattern != null) {
-            fileTree = fileTree.matching(dopplConfig.translatePattern)
+        J2objcConfig j2objcConfig = J2objcConfig.from(project)
+        if(j2objcConfig.translatePattern != null) {
+            fileTree = fileTree.matching(j2objcConfig.translatePattern)
         }
 
         fileTree = fileTree.matching(TranslateTask.javaPattern {
@@ -65,21 +65,21 @@ class DopplAssemblyTask extends DefaultTask {
 
     @InputDirectory @Optional
     File getObjcDir(){
-        File f = project.file(DopplInfo.SOURCEPATH_OBJC_MAIN)
+        File f = project.file(J2objcInfo.SOURCEPATH_OBJC_MAIN)
         return f.exists() ? f : null
     }
 
     @OutputDirectory
-    File getDestDopplDirFile() {
-        return DopplInfo.getInstance(project).rootAssemblyFile()
+    File getDestDirFile() {
+        return J2objcInfo.getInstance(project).rootAssemblyFile()
     }
 
     @TaskAction
-    void dopplDeploy(IncrementalTaskInputs inputs) {
+    void j2objcAssembly(IncrementalTaskInputs inputs) {
 
         Utils.projectCopy(project, {
             from getInputFiles()
-            into new File(getDestDopplDirFile(), "java")
+            into new File(getDestDirFile(), "java")
             include '**/*.java'
         })
 
@@ -87,7 +87,7 @@ class DopplAssemblyTask extends DefaultTask {
         if (objcDir != null) {
             Utils.projectCopy(project, {
                 from objcDir
-                into new File(getDestDopplDirFile(), "src")
+                into new File(getDestDirFile(), "src")
             })
         }
 

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle
+package org.j2objcgradle.gradle
 
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Project
 
-class DopplInfo {
+class J2objcInfo {
     public static final String MAIN = "main"
     public static final String TEST = "test"
 
     //Stable jar java dirs
     public static final String JAVA_SOURCE = "javasource"
 
-    public static final String DOPPL_BUILD = "dopplBuild"
-    public static final String DOPPL_ASSEMBLY = "dopplAssembly"
+    public static final String J2OBJC_BUILD = "j2objcBuild"
+    public static final String J2OBJC_ASSEMBLY = "j2objcAssembly"
     public static final String DEPENDENCIES = "dependencies"
     public static final String JAR = "jar"
     public static final String SOURCE = "source"
@@ -35,50 +35,52 @@ class DopplInfo {
     public static final String OBJC = "objc"
     public static final String FOLDER_EXPLODED = 'exploded'
     public static final String FOLDER_OUT = 'out'
-    public static final String FOLDER_DOPPL_DEP_EXPLODED = 'doppl'
-    public static final String FOLDER_DOPPL_ONLY_DEP_EXPLODED = 'dopplOnly'
-    public static final String FOLDER_TEST_DOPPL_DEP_EXPLODED = 'testDoppl'
+    public static final String FOLDER_J2OBJC_DEP_EXPLODED = 'j2objc'
+    public static final String FOLDER_J2OBJC_ONLY_DEP_EXPLODED = 'j2objcOnly'
+    public static final String FOLDER_TEST_J2OBJC_DEP_EXPLODED = 'testJ2objc'
 
     public static final String SOURCEPATH_OBJC_MAIN = "src/main/objc"
     public static final String SOURCEPATH_OBJC_TEST = "src/test/objc"
 
-    private static DopplInfo instance;
+    private static J2objcInfo instance;
     public static final String J2OBJC_MAPPINGS = "j2objc.mappings"
-    private final File buildDir;
+    private final File buildDir
 
-    DopplInfo(Project project){
+    public static final String TEST_CLASSES_LIST_FILENAME = "j2objcTests.txt"
+
+    J2objcInfo(Project project){
         this(project.buildDir)
     }
 
-    DopplInfo(File buildDir) {
+    J2objcInfo(File buildDir) {
         this.buildDir = buildDir
     }
 
     @VisibleForTesting
-    static DopplInfo getInstance(File buildDir)
+    static J2objcInfo getInstance(File buildDir)
     {
         if(instance == null)
-            instance = new DopplInfo(buildDir)
+            instance = new J2objcInfo(buildDir)
 
         //Static value needs to be updated if changed. This whole class should not be static...
         if(!instance.buildDir.equals(buildDir))
-            instance = new DopplInfo(buildDir)
+            instance = new J2objcInfo(buildDir)
         return instance
     }
 
-    static DopplInfo getInstance(Project project)
+    static J2objcInfo getInstance(Project project)
     {
         return getInstance(project.buildDir)
     }
 
     @VisibleForTesting
     File rootBuildFile() {
-        new File(buildDir, DOPPL_BUILD)
+        new File(buildDir, J2OBJC_BUILD)
     }
 
     File rootAssemblyFile()
     {
-        new File(buildDir, DOPPL_ASSEMBLY)
+        new File(buildDir, J2OBJC_ASSEMBLY)
     }
 
     File dependencyBuildFile()
@@ -97,33 +99,33 @@ class DopplInfo {
     }
 
     /**
-     * Exploded dir for 'doppl' dependencies
+     * Exploded dir for 'j2objc' dependencies
      * @param project
      * @return
      */
-     File dependencyExplodedDopplFile()
+     File dependencyExplodedJ2objcFile()
     {
-        return new File(dependencyExplodedFile(), FOLDER_DOPPL_DEP_EXPLODED)
+        return new File(dependencyExplodedFile(), FOLDER_J2OBJC_DEP_EXPLODED)
     }
 
     /**
-     * Exploded dir for 'dopplOnly' dependencies
+     * Exploded dir for 'j2objcOnly' dependencies
      * @param project
      * @return
      */
-     File dependencyExplodedDopplOnlyFile()
+     File dependencyExplodedJ2objcOnlyFile()
     {
-        return new File(dependencyExplodedFile(), FOLDER_DOPPL_ONLY_DEP_EXPLODED)
+        return new File(dependencyExplodedFile(), FOLDER_J2OBJC_ONLY_DEP_EXPLODED)
     }
 
     /**
-     * Exploded dir for 'testDoppl' dependencies
+     * Exploded dir for 'testJ2objc' dependencies
      * @param project
      * @return
      */
-     File dependencyExplodedTestDopplFile()
+     File dependencyExplodedTestJ2objcFile()
     {
-        return new File(dependencyExplodedFile(), FOLDER_TEST_DOPPL_DEP_EXPLODED)
+        return new File(dependencyExplodedFile(), FOLDER_TEST_J2OBJC_DEP_EXPLODED)
     }
 
     File dependencyOutFile()

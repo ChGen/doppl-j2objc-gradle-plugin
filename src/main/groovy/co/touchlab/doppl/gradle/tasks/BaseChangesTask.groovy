@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.BuildContext
-import co.touchlab.doppl.gradle.DopplConfig
+import org.j2objcgradle.gradle.BuildContext
+import org.j2objcgradle.gradle.J2objcConfig
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 
@@ -33,7 +33,7 @@ class BaseChangesTask extends DefaultTask{
 
     @Input
     Map<String, String> getPrefixes() {
-        DopplConfig.from(project).translatedPathPrefix
+        J2objcConfig.from(project).translatedPathPrefix
     }
 
     @Input
@@ -41,9 +41,9 @@ class BaseChangesTask extends DefaultTask{
 
     @Input
     List<String> getTranslateArgs() {
-        return DopplConfig.from(project).processedTranslateArgs()
+        return J2objcConfig.from(project).processedTranslateArgs()
     }
 
     @Input
-    List<String> getTranslateJ2objcLibs() { return DopplConfig.from(project).translateJ2objcLibs }
+    List<String> getTranslateJ2objcLibs() { return J2objcConfig.from(project).translateJ2objcLibs }
 }

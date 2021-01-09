@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package co.touchlab.doppl.gradle.tasks
+package org.j2objcgradle.gradle.tasks
 
-import co.touchlab.doppl.gradle.BuildContext
-import co.touchlab.doppl.gradle.DopplConfig
-import co.touchlab.doppl.gradle.DopplDependency
-import co.touchlab.doppl.gradle.DopplVersionManager
+import org.j2objcgradle.gradle.BuildContext
+import org.j2objcgradle.gradle.J2objcConfig
+import org.j2objcgradle.gradle.J2objcVersionManager
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
@@ -27,8 +26,6 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.ConfigureUtil
 
 import java.util.zip.ZipFile
 
@@ -43,23 +40,23 @@ class CycleFinderTask extends DefaultTask {
     FileCollection getSrcInputFiles() {
         UnionFileTree fileTree = new UnionFileTree("All Source")
         for (FileTree tree : _buildContext.getBuildTypeProvider().sourceSets(project)) {
-            fileTree.add(tree)
+            fileTree.addToUnion(tree)
         }
         return fileTree.matching(TranslateTask.javaPattern {
             include "**/*.java"
         })
     }
 
-    List<String> getCycleFinderArgs() { return DopplConfig.from(project).cycleFinderArgs }
+    List<String> getCycleFinderArgs() { return J2objcConfig.from(project).cycleFinderArgs }
 
-    List<String> getTranslateJ2objcLibs() { return DopplConfig.from(project).translateJ2objcLibs }
+    List<String> getTranslateJ2objcLibs() { return J2objcConfig.from(project).translateJ2objcLibs }
 
     File getReportFile() { project.file("${project.buildDir}/reports/${name}.out") }
 
     @TaskAction
     void cycleFinder() {
 
-        DopplVersionManager.checkJ2objcConfig(project, true)
+        J2objcVersionManager.checkJ2objcConfig(project, true)
 
         File tempDir = File.createTempDir()
         tempDir.mkdirs()
@@ -76,9 +73,7 @@ class CycleFinderTask extends DefaultTask {
 
         String sourcepathArg = Utils.joinedPathArg(allJavaDirs)
 
-        List<DopplDependency> dopplLibs = TranslateTask.getTranslateDopplLibs(_buildContext, false)
-
-        //Classpath arg for translation. Includes user specified jars, j2objc 'standard' jars, and doppl dependency libs
+        //Classpath arg for translation. Includes user specified jars, j2objc 'standard' jars, and j2objc dependency libs
         UnionFileCollection classpathFiles = new UnionFileCollection([
                 project.files(Utils.j2objcLibs(Utils.j2objcHome(project), getTranslateJ2objcLibs()))
         ])
